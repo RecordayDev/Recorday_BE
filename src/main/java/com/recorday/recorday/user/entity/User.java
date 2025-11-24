@@ -1,6 +1,6 @@
 package com.recorday.recorday.user.entity;
 
-import com.recorday.recorday.auth.enums.Provider;
+import com.recorday.recorday.auth.oauth2.enums.Provider;
 import com.recorday.recorday.user.enums.UserRole;
 import com.recorday.recorday.util.entity.BaseEntity;
 

@@ -1,5 +1,7 @@
 package com.recorday.recorday.exception;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -12,6 +14,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.validation.BindException;
 
+import com.recorday.recorday.exception.dto.FieldErrorResponse;
 import com.recorday.recorday.util.response.Response;
 
 import jakarta.validation.ConstraintViolationException;
@@ -38,10 +41,21 @@ public class GlobalExceptionHandler {
 	 * - DTO 필드 제약조건 위반 (Bean Validation)
 	 */
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<Response<Void>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+	public ResponseEntity<Response<List<FieldErrorResponse>>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
 		log.warn("[MethodArgumentNotValidException] message={}", ex.getMessage(), ex);
 
-		Response<Void> response = Response.errorResponse(GlobalErrorCode.VALIDATION_FAILED);
+		List<FieldErrorResponse> errors = ex.getBindingResult()
+			.getFieldErrors()
+			.stream()
+			.map(error -> new FieldErrorResponse(
+				error.getField(),
+				error.getDefaultMessage(),
+				error.getRejectedValue()
+			))
+			.toList();
+
+		Response<List<FieldErrorResponse>> response =
+			Response.from(GlobalErrorCode.VALIDATION_FAILED, errors);
 		return response.toResponseEntity();
 	}
 
