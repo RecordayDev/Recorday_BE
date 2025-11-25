@@ -79,7 +79,7 @@ class LocalSecurityAuthServiceImplTest {
 	}
 
 	@Test
-	@DisplayName("인증 실패(BadCredentialsException) 시 BusinessException 변환")
+	@DisplayName("인증 실패 시 예외 발생")
 	void loginFail_badCredentials() {
 		//given
 		given(authenticationManager.authenticate(any(Authentication.class)))
