@@ -6,6 +6,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.recorday.recorday.auth.entity.CustomUserPrincipal;
 import com.recorday.recorday.auth.exception.AuthErrorCode;
@@ -27,6 +28,7 @@ public class LocalSecurityLoginServiceImpl implements LocalLoginService {
 	private final RefreshTokenService refreshTokenService;
 
 	@Override
+	@Transactional
 	public AuthTokenResponse login(LocalLoginRequest request) {
 		try {
 			Authentication authenticate = authenticationManager.authenticate(

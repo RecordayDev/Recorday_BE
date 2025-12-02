@@ -77,4 +77,16 @@ public class User extends BaseEntity {
 		this.password = null;
 		this.profileUrl = "/static/images/userDefaultImage.png";
 	}
+
+	public void changePassword(String password) {
+		this.password = password;
+	}
+
+	public void changeUsername(String username) {
+		this.username = username;
+	}
+
+	public void changeProfileUrl(String profileUrl) {
+		this.profileUrl = profileUrl;
+	}
 }
