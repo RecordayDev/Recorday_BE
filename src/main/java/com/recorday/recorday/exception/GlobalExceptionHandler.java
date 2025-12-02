@@ -1,5 +1,7 @@
 package com.recorday.recorday.exception;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -12,6 +14,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.validation.BindException;
 
+import com.recorday.recorday.exception.dto.FieldErrorResponse;
 import com.recorday.recorday.util.response.Response;
 
 import jakarta.validation.ConstraintViolationException;
@@ -27,7 +30,7 @@ public class GlobalExceptionHandler {
 	 */
 	@ExceptionHandler(BusinessException.class)
 	public ResponseEntity<Response<Void>> handleBusinessException(BusinessException ex) {
-		log.warn("[BusinessException] code={}, message={}", ex.getErrorCode().getCode(), ex.getMessage(), ex);
+		log.warn("[BusinessException] code={}, message={}", ex.getErrorCode().getCode(), ex.getMessage());
 
 		Response<Void> response = Response.errorResponse(ex.getErrorCode());
 		return response.toResponseEntity();
@@ -38,10 +41,21 @@ public class GlobalExceptionHandler {
 	 * - DTO 필드 제약조건 위반 (Bean Validation)
 	 */
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<Response<Void>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-		log.warn("[MethodArgumentNotValidException] message={}", ex.getMessage(), ex);
+	public ResponseEntity<Response<List<FieldErrorResponse>>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+		log.warn("[MethodArgumentNotValidException] message={}", ex.getMessage());
 
-		Response<Void> response = Response.errorResponse(GlobalErrorCode.VALIDATION_FAILED);
+		List<FieldErrorResponse> errors = ex.getBindingResult()
+			.getFieldErrors()
+			.stream()
+			.map(error -> new FieldErrorResponse(
+				error.getField(),
+				error.getDefaultMessage(),
+				error.getRejectedValue()
+			))
+			.toList();
+
+		Response<List<FieldErrorResponse>> response =
+			Response.from(GlobalErrorCode.VALIDATION_FAILED, errors);
 		return response.toResponseEntity();
 	}
 
@@ -51,7 +65,7 @@ public class GlobalExceptionHandler {
 	 */
 	@ExceptionHandler(BindException.class)
 	public ResponseEntity<Response<Void>> handleBindException(BindException ex) {
-		log.warn("[BindException] message={}", ex.getMessage(), ex);
+		log.warn("[BindException] message={}", ex.getMessage());
 
 		Response<Void> response = Response.errorResponse(GlobalErrorCode.INVALID_INPUT_VALUE);
 		return response.toResponseEntity();
@@ -65,7 +79,7 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<Response<Void>> handleMethodArgumentTypeMismatchException(
 		MethodArgumentTypeMismatchException ex
 	) {
-		log.warn("[MethodArgumentTypeMismatchException] message={}", ex.getMessage(), ex);
+		log.warn("[MethodArgumentTypeMismatchException] message={}", ex.getMessage());
 
 		Response<Void> response = Response.errorResponse(GlobalErrorCode.TYPE_MISMATCH);
 		return response.toResponseEntity();
@@ -79,7 +93,7 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<Response<Void>> handleMissingServletRequestParameterException(
 		MissingServletRequestParameterException ex
 	) {
-		log.warn("[MissingServletRequestParameterException] message={}", ex.getMessage(), ex);
+		log.warn("[MissingServletRequestParameterException] message={}", ex.getMessage());
 
 		Response<Void> response = Response.errorResponse(GlobalErrorCode.MISSING_REQUEST_PARAMETER);
 		return response.toResponseEntity();
@@ -93,7 +107,7 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<Response<Void>> handleHttpRequestMethodNotSupportedException(
 		HttpRequestMethodNotSupportedException ex
 	) {
-		log.warn("[HttpRequestMethodNotSupportedException] message={}", ex.getMessage(), ex);
+		log.warn("[HttpRequestMethodNotSupportedException] message={}", ex.getMessage());
 
 		Response<Void> response = Response.errorResponse(GlobalErrorCode.METHOD_NOT_ALLOWED);
 		return response.toResponseEntity();
@@ -107,7 +121,7 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<Response<Void>> handleHttpMediaTypeNotSupportedException(
 		HttpMediaTypeNotSupportedException ex
 	) {
-		log.warn("[HttpMediaTypeNotSupportedException] message={}", ex.getMessage(), ex);
+		log.warn("[HttpMediaTypeNotSupportedException] message={}", ex.getMessage());
 
 		Response<Void> response = Response.errorResponse(GlobalErrorCode.UNSUPPORTED_MEDIA_TYPE);
 		return response.toResponseEntity();
@@ -119,7 +133,7 @@ public class GlobalExceptionHandler {
 	 */
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	public ResponseEntity<Response<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
-		log.warn("[HttpMessageNotReadableException] message={}", ex.getMessage(), ex);
+		log.warn("[HttpMessageNotReadableException] message={}", ex.getMessage());
 
 		Response<Void> response = Response.errorResponse(GlobalErrorCode.JSON_PARSE_ERROR);
 		return response.toResponseEntity();
@@ -131,7 +145,7 @@ public class GlobalExceptionHandler {
 	 */
 	@ExceptionHandler(ConstraintViolationException.class)
 	public ResponseEntity<Response<Void>> handleConstraintViolationException(ConstraintViolationException ex) {
-		log.warn("[ConstraintViolationException] message={}", ex.getMessage(), ex);
+		log.warn("[ConstraintViolationException] message={}", ex.getMessage());
 
 		Response<Void> response = Response.errorResponse(GlobalErrorCode.INVALID_INPUT_VALUE);
 		return response.toResponseEntity();
@@ -143,7 +157,7 @@ public class GlobalExceptionHandler {
 	 */
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<Response<Void>> handleException(Exception ex) {
-		log.error("[Exception] message={}", ex.getMessage(), ex);
+		log.error("[Exception] message={}", ex.getMessage());
 
 		Response<Void> response = Response.errorResponse(GlobalErrorCode.INTERNAL_SERVER_ERROR);
 		return response.toResponseEntity();
