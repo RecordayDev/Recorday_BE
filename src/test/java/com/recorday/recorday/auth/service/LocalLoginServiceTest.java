@@ -17,8 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.recorday.recorday.auth.exception.AuthErrorCode;
 import com.recorday.recorday.auth.jwt.service.JwtTokenService;
 import com.recorday.recorday.auth.local.dto.request.LocalLoginRequest;
-import com.recorday.recorday.auth.local.dto.response.LocalLoginResponse;
-import com.recorday.recorday.auth.local.service.LocalAuthServiceImpl;
+import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
+import com.recorday.recorday.auth.local.service.LocalLoginServiceImpl;
 import com.recorday.recorday.auth.oauth2.enums.Provider;
 import com.recorday.recorday.exception.BusinessException;
 import com.recorday.recorday.user.entity.User;
@@ -26,7 +26,7 @@ import com.recorday.recorday.user.enums.UserRole;
 import com.recorday.recorday.user.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
-class LocalAuthServiceTest {
+class LocalLoginServiceTest {
 
 	@Mock
 	private UserRepository userRepository;
@@ -38,7 +38,7 @@ class LocalAuthServiceTest {
 	private JwtTokenService jwtTokenService;
 
 	@InjectMocks
-	private LocalAuthServiceImpl localAuthService;
+	private LocalLoginServiceImpl localAuthService;
 
 	private String email;
 	private String rawPassword;
@@ -68,7 +68,7 @@ class LocalAuthServiceTest {
 			.willReturn("access-token");
 
 		//when
-		LocalLoginResponse response = localAuthService.login(request);
+		AuthTokenResponse response = localAuthService.login(request);
 
 		//then
 		assertThat(response.accessToken()).isEqualTo("access-token");

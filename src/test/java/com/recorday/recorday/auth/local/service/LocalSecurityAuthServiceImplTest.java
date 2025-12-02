@@ -19,7 +19,7 @@ import com.recorday.recorday.auth.entity.CustomUserPrincipal;
 import com.recorday.recorday.auth.exception.AuthErrorCode;
 import com.recorday.recorday.auth.jwt.service.JwtTokenService;
 import com.recorday.recorday.auth.local.dto.request.LocalLoginRequest;
-import com.recorday.recorday.auth.local.dto.response.LocalLoginResponse;
+import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
 import com.recorday.recorday.auth.oauth2.enums.Provider;
 import com.recorday.recorday.exception.BusinessException;
 import com.recorday.recorday.user.entity.User;
@@ -35,7 +35,7 @@ class LocalSecurityAuthServiceImplTest {
 	private JwtTokenService jwtTokenService;
 
 	@InjectMocks
-	private LocalSecurityAuthServiceImpl localSecurityAuthService;
+	private LocalSecurityLoginServiceImpl localSecurityAuthService;
 
 	private LocalLoginRequest request;
 	private CustomUserPrincipal principal;
@@ -67,7 +67,7 @@ class LocalSecurityAuthServiceImplTest {
 			.willReturn("refresh-token");
 
 		//when
-		LocalLoginResponse response = localSecurityAuthService.login(request);
+		AuthTokenResponse response = localSecurityAuthService.login(request);
 
 		//then
 		assertThat(response.accessToken()).isEqualTo("access-token");

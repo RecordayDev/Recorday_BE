@@ -11,7 +11,9 @@ import com.recorday.recorday.user.entity.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-	Optional<User> findByEmail(String email);
+	boolean existsByProviderAndEmail(Provider provider, String email);
 
 	Optional<User> findByProviderAndEmail(Provider provider, String email);
+
+	Optional<User> findByProviderAndProviderId(Provider provider, String providerId);
 }

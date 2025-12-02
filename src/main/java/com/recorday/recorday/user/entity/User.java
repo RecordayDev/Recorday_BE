@@ -2,6 +2,7 @@ package com.recorday.recorday.user.entity;
 
 import com.recorday.recorday.auth.oauth2.enums.Provider;
 import com.recorday.recorday.user.enums.UserRole;
+import com.recorday.recorday.user.enums.UserStatus;
 import com.recorday.recorday.util.entity.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -25,6 +26,10 @@ import lombok.NoArgsConstructor;
 		@UniqueConstraint(
 			name = "uk_provider_email",
 			columnNames = {"provider", "email"}
+		),
+		@UniqueConstraint(
+			name = "uk_provider_provider_id",
+			columnNames = {"provider", "provider_id"}
 		)
 	}
 )
@@ -43,6 +48,9 @@ public class User extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private Provider provider;
 
+	@Column(name = "provider_id", length = 64)
+	private String providerId;
+
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
 	private UserRole userRole;
@@ -57,4 +65,15 @@ public class User extends BaseEntity {
 
 	@Column(nullable = false, length = 1024)
 	private String profileUrl;
+
+	@Column(nullable = false)
+	@Enumerated(EnumType.STRING)
+	private UserStatus deleted = UserStatus.ACTIVE;
+
+	public void delete() {
+		this.deleted = UserStatus.DELETED;
+		this.email = "deleted_" + this.id + "@recorday.local";
+		this.username = "탈퇴한 사용자";
+		this.password = null;
+	}
 }
