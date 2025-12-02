@@ -4,10 +4,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
 import com.recorday.recorday.auth.entity.CustomUserPrincipal;
 import com.recorday.recorday.auth.exception.AuthErrorCode;
+import com.recorday.recorday.auth.exception.CustomAuthenticationException;
 import com.recorday.recorday.auth.jwt.service.JwtTokenService;
 import com.recorday.recorday.auth.local.dto.request.LocalLoginRequest;
 import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
@@ -38,6 +40,12 @@ public class LocalSecurityLoginServiceImpl implements LocalLoginService {
 			return new AuthTokenResponse(accessToken, refreshToken);
 		} catch (BadCredentialsException e) {
 			throw new BusinessException(AuthErrorCode.INVALID_CREDENTIALS);
+		} catch (AuthenticationException e) {
+			if (e.getCause() instanceof CustomAuthenticationException custom) {
+				throw new BusinessException(custom.getErrorCode());
+			}
+			throw new BusinessException(AuthErrorCode.AUTHENTICATION_FAILED);
+
 		}
 	}
 }

@@ -19,6 +19,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 
 import com.recorday.recorday.auth.entity.CustomUserPrincipal;
 import com.recorday.recorday.auth.jwt.service.JwtTokenService;
@@ -37,6 +38,9 @@ class JwtAuthenticationFilterTest {
 	private UserPrincipalLoader userPrincipalLoader;
 
 	@Mock
+	private AuthenticationEntryPoint authenticationEntryPoint;
+
+	@Mock
 	private FilterChain filterChain;
 
 	@Mock
@@ -46,7 +50,7 @@ class JwtAuthenticationFilterTest {
 
 	@BeforeEach
 	void setUp() throws Exception {
-		jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtTokenService, userPrincipalLoader);
+		jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtTokenService, userPrincipalLoader, authenticationEntryPoint);
 		SecurityContextHolder.clearContext();
 	}
 

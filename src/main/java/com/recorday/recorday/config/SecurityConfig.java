@@ -55,7 +55,7 @@ public class SecurityConfig {
 	private final OAuth2UserService<OAuth2UserRequest, OAuth2User> customOAuth2UserService;
 	private final AuthenticationSuccessHandler customOAuth2SuccessHandler;
 	private final AuthenticationFailureHandler customOAuth2FailureHandler;
-	// private final AuthenticationEntryPoint customAuthenticationEntryPoint;
+	private final AuthenticationEntryPoint customAuthenticationEntryPoint;
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -93,19 +93,14 @@ public class SecurityConfig {
 
 		http
 			.addFilterBefore(
-				new JwtAuthenticationFilter(jwtTokenService, userPrincipalLoader),
+				new JwtAuthenticationFilter(jwtTokenService, userPrincipalLoader, customAuthenticationEntryPoint),
 				UsernamePasswordAuthenticationFilter.class
 			);
 
-		// http
-		// 	.exceptionHandling(ex -> ex
-		// 		.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-		// 	);
-
-		// http
-		// 	.exceptionHandling(ex -> ex
-		// 		.authenticationEntryPoint(customAuthenticationEntryPoint)
-		// 	);
+		http
+			.exceptionHandling(ex -> ex
+				.authenticationEntryPoint(customAuthenticationEntryPoint)
+			);
 
 		http
 			.authorizeHttpRequests(auth -> auth

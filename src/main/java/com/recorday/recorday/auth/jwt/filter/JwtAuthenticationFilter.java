@@ -5,11 +5,13 @@ import java.util.List;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.recorday.recorday.auth.entity.CustomUserPrincipal;
+import com.recorday.recorday.auth.exception.CustomAuthenticationException;
 import com.recorday.recorday.auth.jwt.service.JwtTokenService;
 import com.recorday.recorday.auth.service.UserPrincipalLoader;
 
@@ -27,13 +29,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private static final List<String> EXCLUDED_PATHS = List.of(
 		"/",
 		"/login/**",
-		"/api/recorday/**",
+		"/api/recorday/login",
+		"/api/recorday/register",
 		"/api/oauth2/**"
 	);
 
 	private final AntPathMatcher pathMatcher = new AntPathMatcher();
 	private final JwtTokenService jwtTokenService;
 	private final UserPrincipalLoader userPrincipalLoader;
+	private final AuthenticationEntryPoint authenticationEntryPoint;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -57,20 +61,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
-			Long userId = jwtTokenService.getUserId(token);
-			CustomUserPrincipal principal = userPrincipalLoader.loadUserById(userId);
+			try {
+				Long userId = jwtTokenService.getUserId(token);
+				CustomUserPrincipal principal = userPrincipalLoader.loadUserById(userId);
 
-			UsernamePasswordAuthenticationToken authentication =
-				new UsernamePasswordAuthenticationToken(
-					principal,
-					null,
-					principal.getAuthorities()
+				UsernamePasswordAuthenticationToken authentication =
+					new UsernamePasswordAuthenticationToken(
+						principal,
+						null,
+						principal.getAuthorities()
+					);
+
+				authentication.setDetails(
+					new WebAuthenticationDetailsSource().buildDetails(request)
 				);
-
-			authentication.setDetails(
-				new WebAuthenticationDetailsSource().buildDetails(request)
-			);
-			SecurityContextHolder.getContext().setAuthentication(authentication);
+				SecurityContextHolder.getContext().setAuthentication(authentication);
+			} catch (CustomAuthenticationException ex) {
+				SecurityContextHolder.clearContext();
+				authenticationEntryPoint.commence(request, response, ex);
+				return;
+			}
 		}
 		filterChain.doFilter(request, response);
 	}

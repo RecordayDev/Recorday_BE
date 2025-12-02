@@ -1,6 +1,5 @@
 package com.recorday.recorday.auth.local.service;
 
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
@@ -35,7 +34,7 @@ public class CustomUserDetailsService implements UserDetailsService, UserPrincip
 	}
 
 	@Override
-	public CustomUserPrincipal loadUserById(Long userId) {
+	public CustomUserPrincipal loadUserById(Long userId) throws CustomAuthenticationException {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomAuthenticationException(AuthErrorCode.NOT_EXIST_USER));
 

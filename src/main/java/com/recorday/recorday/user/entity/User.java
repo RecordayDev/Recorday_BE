@@ -75,5 +75,6 @@ public class User extends BaseEntity {
 		this.email = "deleted_" + this.id + "@recorday.local";
 		this.username = "탈퇴한 사용자";
 		this.password = null;
+		this.profileUrl = "/static/images/userDefaultImage.png";
 	}
 }
