@@ -1,6 +1,6 @@
 package com.recorday.recorday.auth.jwt.service;
 
-import com.recorday.recorday.auth.local.dto.response.LocalLoginResponse;
+import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
 
 public interface JwtTokenService {
 
@@ -10,7 +10,9 @@ public interface JwtTokenService {
 
 	boolean validateToken(String token);
 
-	LocalLoginResponse reissue(String refreshToken);
+	Long getUserId(String token);
+
+	AuthTokenResponse reissue(String refreshToken);
 
 	void logout(String refreshToken);
 }
