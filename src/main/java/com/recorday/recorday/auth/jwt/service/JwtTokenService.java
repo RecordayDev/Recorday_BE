@@ -1,7 +1,5 @@
 package com.recorday.recorday.auth.jwt.service;
 
-import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
-
 public interface JwtTokenService {
 
 	String createAccessToken(Long userId);
@@ -12,7 +10,7 @@ public interface JwtTokenService {
 
 	Long getUserId(String token);
 
-	AuthTokenResponse reissue(String refreshToken);
+	public String getTokenType(String token);
 
-	void logout(String refreshToken);
+	public long getRefreshTokenValidityMillis();
 }

@@ -42,6 +42,7 @@ public class SecurityConfig {
 		"/",
 		"/api/recorday/login",
 		"/api/recorday/register",
+		"/api/recorday/reissue",
 		"/api/oauth2/**"
 	);
 

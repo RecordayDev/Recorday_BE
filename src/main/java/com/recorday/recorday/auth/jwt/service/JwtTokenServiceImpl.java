@@ -1,5 +1,7 @@
 package com.recorday.recorday.auth.jwt.service;
 
+import com.recorday.recorday.auth.exception.AuthErrorCode;
+import com.recorday.recorday.auth.exception.CustomAuthenticationException;
 import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
 
 import java.nio.charset.StandardCharsets;
@@ -8,6 +10,7 @@ import java.time.Instant;
 import java.util.Date;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -63,10 +66,17 @@ public class JwtTokenServiceImpl implements JwtTokenService{
 				.build()
 				.parseClaimsJws(token);
 
-			return !claims.getBody().getExpiration().before(new Date());
+			// 만료 검사
+			if (claims.getBody().getExpiration().before(new Date())) {
+				throw new CustomAuthenticationException(AuthErrorCode.EXPIRED_ACCESS_TOKEN);
+			}
+
+		} catch (ExpiredJwtException e) {
+			throw new CustomAuthenticationException(AuthErrorCode.EXPIRED_ACCESS_TOKEN);
 		} catch (JwtException | IllegalArgumentException e) {
-			return false;
+			throw new CustomAuthenticationException(AuthErrorCode.INVALID_ACCESS_TOKEN);
 		}
+		return true;
 	}
 
 	@Override
@@ -81,12 +91,17 @@ public class JwtTokenServiceImpl implements JwtTokenService{
 	}
 
 	@Override
-	public AuthTokenResponse reissue(String refreshToken) {
-		throw new UnsupportedOperationException("reissue() not implemented yet");
+	public String getTokenType(String token) {
+		Jws<Claims> claims = Jwts.parserBuilder()
+			.setSigningKey(key)
+			.build()
+			.parseClaimsJws(token);
+
+		return claims.getBody().get("type", String.class);
 	}
 
 	@Override
-	public void logout(String refreshToken) {
-		throw new UnsupportedOperationException("logout() not implemented yet");
+	public long getRefreshTokenValidityMillis() {
+		return refreshTokenValidityMillis;
 	}
 }

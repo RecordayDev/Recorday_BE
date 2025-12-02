@@ -31,6 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		"/login/**",
 		"/api/recorday/login",
 		"/api/recorday/register",
+		"/api/recorday/reissue",
 		"/api/oauth2/**"
 	);
 
@@ -54,10 +55,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		String token = authorizationHeader.substring(7);
 
-		if (!jwtTokenService.validateToken(token)) {
-			filterChain.doFilter(request, response);
+		try {
+			if (!jwtTokenService.validateToken(token)) {
+				filterChain.doFilter(request, response);
+				return;
+			}
+		} catch (CustomAuthenticationException ex) {
+			SecurityContextHolder.clearContext();
+			authenticationEntryPoint.commence(request, response, ex);
 			return;
 		}
+
 
 		if (SecurityContextHolder.getContext().getAuthentication() == null) {
 

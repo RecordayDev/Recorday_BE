@@ -11,6 +11,7 @@ import com.recorday.recorday.auth.entity.CustomUserPrincipal;
 import com.recorday.recorday.auth.exception.AuthErrorCode;
 import com.recorday.recorday.auth.exception.CustomAuthenticationException;
 import com.recorday.recorday.auth.jwt.service.JwtTokenService;
+import com.recorday.recorday.auth.jwt.service.RefreshTokenService;
 import com.recorday.recorday.auth.local.dto.request.LocalLoginRequest;
 import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
 import com.recorday.recorday.exception.BusinessException;
@@ -23,6 +24,7 @@ public class LocalSecurityLoginServiceImpl implements LocalLoginService {
 
 	private final AuthenticationManager authenticationManager;
 	private final JwtTokenService jwtTokenService;
+	private final RefreshTokenService refreshTokenService;
 
 	@Override
 	public AuthTokenResponse login(LocalLoginRequest request) {
@@ -36,6 +38,8 @@ public class LocalSecurityLoginServiceImpl implements LocalLoginService {
 
 			String accessToken = jwtTokenService.createAccessToken(userId);
 			String refreshToken = jwtTokenService.createRefreshToken(userId);
+
+			refreshTokenService.saveRefreshToken(userId, refreshToken);
 
 			return new AuthTokenResponse(accessToken, refreshToken);
 		} catch (BadCredentialsException e) {
