@@ -39,3 +39,4 @@ out/
 src/main/resources/application*
 docker-compose.yml
 Dockerfile
+deploy.sh
