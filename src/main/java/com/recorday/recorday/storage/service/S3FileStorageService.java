@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import com.recorday.recorday.storage.dto.PresignedUploadResponse;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -15,6 +17,8 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -24,9 +28,11 @@ public class S3FileStorageService implements FileStorageService {
 	private final S3Presigner s3Presigner;
 	private final String bucketName;
 
+	@Deprecated
 	@Override
 	@Transactional
 	public String upload(String dir, String filename, InputStream inputStream, long contentLength, String contentType) {
+
 		String extension = extractExtension(filename);
 		String uniqueName = UUID.randomUUID() + extension;
 		String key = (dir != null && !dir.isBlank())
@@ -52,6 +58,7 @@ public class S3FileStorageService implements FileStorageService {
 	@Override
 	@Transactional
 	public void delete(String key) {
+
 		DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
 			.bucket(bucketName)
 			.key(key)
@@ -64,6 +71,7 @@ public class S3FileStorageService implements FileStorageService {
 
 	@Override
 	public String generatePresignedUrl(String key, Duration expiry) {
+
 		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
 			.bucket(bucketName)
 			.key(key)
@@ -75,6 +83,45 @@ public class S3FileStorageService implements FileStorageService {
 			.build();
 
 		return s3Presigner.presignGetObject(presignRequest).url().toString();
+	}
+
+	@Override
+	@Transactional
+	public PresignedUploadResponse generatePresignedUploadUrl(String dir,
+		String originalFilename,
+		String contentType,
+		Duration expiry,
+		Long userId
+	) {
+
+		dir = dir + "/" + userId;
+		String extension = extractExtension(originalFilename);
+		String uniqueName = UUID.randomUUID() + extension;
+		String key = (!dir.isBlank())
+			? dir + "/" + uniqueName
+			: uniqueName;
+
+		PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+			.bucket(bucketName)
+			.key(key)
+			.contentType(contentType)
+			.build();
+
+		PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+			.signatureDuration(expiry)
+			.putObjectRequest(putObjectRequest)
+			.build();
+
+		PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(presignRequest);
+
+		String url = presigned.url().toString();
+		log.info("Generated presigned upload URL. bucket={}, key={}", bucketName, key);
+
+		return new PresignedUploadResponse(
+			key,
+			url,
+			expiry
+		);
 	}
 
 	private String extractExtension(String filename) {

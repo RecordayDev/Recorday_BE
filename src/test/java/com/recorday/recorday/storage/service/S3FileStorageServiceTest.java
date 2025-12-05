@@ -20,6 +20,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.recorday.recorday.storage.dto.PresignedUploadResponse;
+
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -30,6 +32,8 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 @ExtendWith(MockitoExtension.class)
 class S3FileStorageServiceTest {
@@ -141,5 +145,44 @@ class S3FileStorageServiceTest {
 		assertThat(url).isEqualTo(expected);
 
 		then(s3Presigner).should().presignGetObject(any(GetObjectPresignRequest.class));
+	}
+
+	@Test
+	@DisplayName("업로드용 presigned URL을 생성하고, key와 URL을 함께 반환한다")
+	void generatePresignedUploadUrl() {
+		//given
+		String dir = "profile";
+		String originalFilename = "test.png";
+		String contentType = "image/png";
+		Duration expiry = Duration.ofMinutes(5);
+
+		String expectedUrl = "https://example.com/upload/" + dir + "/some-key";
+
+		SdkHttpRequest httpRequest = SdkHttpRequest.builder()
+			.method(SdkHttpMethod.PUT)
+			.uri(URI.create(expectedUrl))
+			.build();
+
+		PresignedPutObjectRequest presigned =
+			PresignedPutObjectRequest.builder()
+				.httpRequest(httpRequest)
+				.expiration(Instant.now().plus(expiry))
+				.signedHeaders(Map.of("Host", List.of("example.com")))
+				.isBrowserExecutable(true)
+				.build();
+
+		given(s3Presigner.presignPutObject(any(PutObjectPresignRequest.class))).willReturn(presigned);
+
+		//when
+		PresignedUploadResponse response = fileStorageService.generatePresignedUploadUrl(dir,
+			originalFilename, contentType, expiry, 1L);
+
+		//then
+		assertThat(response.uploadUrl()).isEqualTo(expectedUrl);
+		assertThat(response.key()).startsWith(dir + "/");
+		assertThat(response.key()).endsWith(".png");
+		assertThat(response.expiresIn()).isEqualTo(expiry);
+
+		then(s3Presigner).should().presignPutObject(any(PutObjectPresignRequest.class));
 	}
 }
