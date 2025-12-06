@@ -34,6 +34,6 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
 
 		String authorizationCode = authCodeService.saveAuthCode(userId, provider);
 
-		getRedirectStrategy().sendRedirect(request, response,REDIRECT_URL + "/success?authorization_code=" + authorizationCode);
+		getRedirectStrategy().sendRedirect(request, response,REDIRECT_URL + "/oauth2/kakao/callback?authorization_code=" + authorizationCode);
 	}
 }

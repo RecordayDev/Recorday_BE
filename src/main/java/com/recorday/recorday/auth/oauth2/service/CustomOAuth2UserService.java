@@ -44,14 +44,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		ProviderUser providerUser = ProviderUserFactory.of(provider, oAuth2User, clientRegistration);
 
 		User user = userRepository
-			.findByProviderAndProviderId(provider, providerUser.getProviderId())
+			.findByProviderAndEmail(provider, providerUser.getEmail())
 			.orElseGet(() -> registerOAuth2User(provider, providerUser));
 
-		if (user.getDeleted().equals(UserStatus.DELETED)) {
-			throw new OAuth2AuthenticationException(
-				new OAuth2Error(AuthErrorCode.DELETED_USER.getCode()), AuthErrorCode.DELETED_USER.getMessage()
-			);
-		}
+		// if (user.getDeleted().equals(UserStatus.DELETED)) {
+		// 	throw new OAuth2AuthenticationException(
+		// 		new OAuth2Error(AuthErrorCode.DELETED_USER.getCode()), AuthErrorCode.DELETED_USER.getMessage()
+		// 	);
+		// }
 
 		String nameAttributeKey = clientRegistration.getProviderDetails()
 			.getUserInfoEndpoint()
