@@ -53,7 +53,7 @@ public class CustomOAuth2FailureHandler extends SimpleUrlAuthenticationFailureHa
 		response.setContentType("application/json;charset=UTF-8");
 
 		// objectMapper.writeValue(response.getWriter(), body);
-		getRedirectStrategy().sendRedirect(request, response,REDIRECT_URL + "/failure");
+		getRedirectStrategy().sendRedirect(request, response,REDIRECT_URL + "/oauth2/kakao/callback");
 	}
 
 	private AuthErrorCode resolveErrorCode(AuthenticationException exception) {

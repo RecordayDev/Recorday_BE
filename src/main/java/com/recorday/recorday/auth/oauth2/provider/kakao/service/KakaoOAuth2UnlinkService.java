@@ -3,6 +3,7 @@ package com.recorday.recorday.auth.oauth2.provider.kakao.service;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -49,7 +50,8 @@ public class KakaoOAuth2UnlinkService implements OAuth2UnlinkService {
 
 		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
-		log.info("카카오 연결 해제 시도 시작");
+		user.unlinkProvider();
+
 		try {
 			restTemplate.postForEntity(
 				kakaoProperties.getUnlinkUrl(),

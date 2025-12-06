@@ -78,6 +78,10 @@ public class User extends BaseEntity {
 		this.profileUrl = "/static/images/userDefaultImage.png";
 	}
 
+	public void unlinkProvider() {
+		this.providerId = null;
+	}
+
 	public void changePassword(String password) {
 		this.password = password;
 	}
