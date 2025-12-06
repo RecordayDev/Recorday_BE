@@ -36,15 +36,13 @@ public class CustomOAuth2FailureHandler extends SimpleUrlAuthenticationFailureHa
 
 		log.warn("OAuth2 실패 핸들러 도착 - type: {}, message: {}",
 			exception.getClass().getName(),
-			exception.getMessage(),
-			exception);
+			exception.getMessage());
 
 		Throwable cause = exception.getCause();
 		if (cause != null) {
 			log.warn("OAuth2 실패 원인(cause) - type: {}, message: {}",
 				cause.getClass().getName(),
-				cause.getMessage(),
-				cause);
+				cause.getMessage());
 		}
 
 		AuthErrorCode errorCode = resolveErrorCode(exception);
