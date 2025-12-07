@@ -6,7 +6,7 @@ public interface JwtTokenService {
 
 	String createRefreshToken(Long userId);
 
-	boolean validateToken(String token);
+	void validateToken(String token);
 
 	Long getUserId(String token);
 

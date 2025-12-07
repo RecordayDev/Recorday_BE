@@ -16,6 +16,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.recorday.recorday.auth.exception.AuthErrorCode;
+import com.recorday.recorday.auth.exception.CustomAuthenticationException;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -90,11 +93,8 @@ class JwtTokenServiceImplTest {
 		//given
 		String token = jwtTokenService.createAccessToken(1L);
 
-		//when
-		boolean isValid = jwtTokenService.validateToken(token);
-
-		//then
-		assertTrue(isValid);
+		//when & then
+		assertDoesNotThrow(() -> jwtTokenService.validateToken(token));
 	}
 
 	@Test
@@ -112,11 +112,10 @@ class JwtTokenServiceImplTest {
 			.signWith(key, SignatureAlgorithm.HS256)
 			.compact();
 
-		//when
-		boolean isValid = jwtTokenService.validateToken(expiredToken);
-
-		//then
-		assertFalse(isValid);
+		//when & then
+		assertThatThrownBy(() -> jwtTokenService.validateToken(expiredToken))
+			.isInstanceOf(CustomAuthenticationException.class)
+			.hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.EXPIRED_TOKEN);
 	}
 
 	@Test
@@ -131,11 +130,10 @@ class JwtTokenServiceImplTest {
 			.signWith(anotherKey, SignatureAlgorithm.HS256)
 			.compact();
 
-		//when
-		boolean isValid = jwtTokenService.validateToken(tokenWithDifferentKey);
-
-		//then
-		assertFalse(isValid);
+		//when & then
+		assertThatThrownBy(() -> jwtTokenService.validateToken(tokenWithDifferentKey))
+			.isInstanceOf(CustomAuthenticationException.class)
+			.hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_TOKEN);
 	}
 
 }

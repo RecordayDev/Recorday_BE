@@ -56,20 +56,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		String token = authorizationHeader.substring(7);
 
 		try {
-			if (!jwtTokenService.validateToken(token)) {
-				filterChain.doFilter(request, response);
-				return;
-			}
-		} catch (CustomAuthenticationException ex) {
-			SecurityContextHolder.clearContext();
-			authenticationEntryPoint.commence(request, response, ex);
-			return;
-		}
+			jwtTokenService.validateToken(token);
 
+			if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
-		if (SecurityContextHolder.getContext().getAuthentication() == null) {
-
-			try {
 				Long userId = jwtTokenService.getUserId(token);
 				CustomUserPrincipal principal = userPrincipalLoader.loadUserById(userId);
 
@@ -83,13 +73,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				authentication.setDetails(
 					new WebAuthenticationDetailsSource().buildDetails(request)
 				);
+
 				SecurityContextHolder.getContext().setAuthentication(authentication);
-			} catch (CustomAuthenticationException ex) {
-				SecurityContextHolder.clearContext();
-				authenticationEntryPoint.commence(request, response, ex);
-				return;
 			}
+
+		} catch (CustomAuthenticationException ex) {
+			// 검증 실패(만료, 위조 등) or 사용자 조회 실패 시 공통 처리
+			log.error("JWT 인증 실패: {}", ex.getMessage());
+			SecurityContextHolder.clearContext();
+			authenticationEntryPoint.commence(request, response, ex);
+			return;
 		}
+
 		filterChain.doFilter(request, response);
 	}
 

@@ -2,7 +2,6 @@ package com.recorday.recorday.auth.jwt.service;
 
 import com.recorday.recorday.auth.exception.AuthErrorCode;
 import com.recorday.recorday.auth.exception.CustomAuthenticationException;
-import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -59,24 +58,18 @@ public class JwtTokenServiceImpl implements JwtTokenService{
 	}
 
 	@Override
-	public boolean validateToken(String token) {
+	public void validateToken(String token) {
 		try {
-			Jws<Claims> claims = Jwts.parserBuilder()
+			Jwts.parserBuilder()
 				.setSigningKey(key)
 				.build()
 				.parseClaimsJws(token);
 
-			// 만료 검사
-			if (claims.getBody().getExpiration().before(new Date())) {
-				throw new CustomAuthenticationException(AuthErrorCode.EXPIRED_ACCESS_TOKEN);
-			}
-
 		} catch (ExpiredJwtException e) {
-			throw new CustomAuthenticationException(AuthErrorCode.EXPIRED_ACCESS_TOKEN);
+			throw new CustomAuthenticationException(AuthErrorCode.EXPIRED_TOKEN);
 		} catch (JwtException | IllegalArgumentException e) {
-			throw new CustomAuthenticationException(AuthErrorCode.INVALID_ACCESS_TOKEN);
+			throw new CustomAuthenticationException(AuthErrorCode.INVALID_TOKEN);
 		}
-		return true;
 	}
 
 	@Override

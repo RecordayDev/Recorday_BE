@@ -38,7 +38,7 @@ class CustomOAuth2FailureHandlerTest {
 		AuthenticationException exception = new BadCredentialsException("bad credentials");
 
 		failureHandler = new CustomOAuth2FailureHandler(objectMapper);
-		ReflectionTestUtils.setField(failureHandler, "REDIRECT_URL", "http://localhost:5173");
+		ReflectionTestUtils.setField(failureHandler, "REDIRECT_URL", "http://localhost:3000");
 
 		//when
 		failureHandler.onAuthenticationFailure(request, response, exception);
@@ -47,7 +47,7 @@ class CustomOAuth2FailureHandlerTest {
 		assertThat(response.getStatus()).isEqualTo(302);
 
 		assertThat(response.getRedirectedUrl())
-			.isEqualTo("http://localhost:5173/failure");
+			.isEqualTo("http://localhost:3000/oauth2/kakao/callback");
 
 		assertThat(response.getContentAsString()).isEmpty();
 

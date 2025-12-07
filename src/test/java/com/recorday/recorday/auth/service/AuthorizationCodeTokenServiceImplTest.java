@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.recorday.recorday.auth.jwt.dto.AuthCodePayload;
 import com.recorday.recorday.auth.jwt.dto.TokenResponse;
 import com.recorday.recorday.auth.jwt.service.JwtTokenService;
+import com.recorday.recorday.auth.jwt.service.RefreshTokenService;
 import com.recorday.recorday.auth.oauth2.service.AuthCodeService;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,6 +27,9 @@ class AuthorizationCodeTokenServiceImplTest {
 
 	@Mock
 	private JwtTokenService jwtTokenService;
+
+	@Mock // [추가됨] 누락된 Mock 추가
+	private RefreshTokenService refreshTokenService;
 
 	@InjectMocks
 	private AuthorizationCodeTokenServiceImpl authorizationCodeTokenService;
@@ -41,6 +45,9 @@ class AuthorizationCodeTokenServiceImplTest {
 		given(jwtTokenService.createAccessToken(1L)).willReturn("ACCESS_TOKEN");
 		given(jwtTokenService.createRefreshToken(1L)).willReturn("REFRESH_TOKEN");
 
+		// [추가됨] void 메서드는 willDoNothing이 기본이지만, 명시적으로 적어주거나 생략 가능
+		// willDoNothing().given(refreshTokenService).saveRefreshToken(anyLong(), anyString());
+
 		//when
 		TokenResponse tokenResponse = authorizationCodeTokenService.issueTokens(code);
 
@@ -53,5 +60,7 @@ class AuthorizationCodeTokenServiceImplTest {
 		then(jwtTokenService).should().createAccessToken(1L);
 		then(jwtTokenService).should().createRefreshToken(1L);
 
+		// [추가됨] RefreshToken 저장 호출 검증
+		then(refreshTokenService).should().saveRefreshToken(1L, "REFRESH_TOKEN");
 	}
 }

@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
-import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -98,7 +97,7 @@ class LocalUserAuthServiceImplTest {
 		assertThat(userArgument.getUsername()).isEqualTo(localRegisterRequest.username());
 		assertThat(userArgument.getPassword()).isEqualTo(localRegisterRequest.password());
 		assertThat(userArgument.getProfileUrl()).isEqualTo("/static/images/userDefaultImage.png");
-		assertThat(userArgument.getDeleted()).isEqualTo(UserStatus.ACTIVE);
+		assertThat(userArgument.getUserStatus()).isEqualTo(UserStatus.ACTIVE);
 	}
 
 }

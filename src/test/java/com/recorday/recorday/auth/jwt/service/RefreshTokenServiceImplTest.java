@@ -48,7 +48,6 @@ class RefreshTokenServiceImplTest {
 		String newRefreshToken = "new-refresh-token";
 		long refreshValidityMillis = 1000L;
 
-		given(jwtTokenService.validateToken(refreshToken)).willReturn(true);
 		given(jwtTokenService.getTokenType(refreshToken)).willReturn("REFRESH");
 		given(jwtTokenService.getUserId(refreshToken)).willReturn(userId);
 		given(valueOperations.get(key)).willReturn(refreshToken);
@@ -77,8 +76,6 @@ class RefreshTokenServiceImplTest {
 		// given
 		String refreshToken = "invalid-token";
 
-		given(jwtTokenService.validateToken(refreshToken)).willReturn(false);
-
 		// when
 		BusinessException ex = assertThrows(
 			BusinessException.class,
@@ -86,7 +83,7 @@ class RefreshTokenServiceImplTest {
 		);
 
 		// then
-		assertThat(ex.getErrorCode()).isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
+		assertThat(ex.getErrorCode()).isEqualTo(AuthErrorCode.INVALID_TOKEN);
 	}
 
 	@Test
@@ -95,7 +92,6 @@ class RefreshTokenServiceImplTest {
 		// given
 		String refreshToken = "access-token-pretending-to-be-refresh";
 
-		given(jwtTokenService.validateToken(refreshToken)).willReturn(true);
 		given(jwtTokenService.getTokenType(refreshToken)).willReturn("ACCESS");
 
 		// when
@@ -105,7 +101,7 @@ class RefreshTokenServiceImplTest {
 		);
 
 		// then
-		assertThat(ex.getErrorCode()).isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
+		assertThat(ex.getErrorCode()).isEqualTo(AuthErrorCode.INVALID_TOKEN);
 	}
 
 	@Test
@@ -118,7 +114,6 @@ class RefreshTokenServiceImplTest {
 		Long userId = 1L;
 		String key = "REFRESH_TOKEN:USER:" + userId;
 
-		given(jwtTokenService.validateToken(refreshToken)).willReturn(true);
 		given(jwtTokenService.getTokenType(refreshToken)).willReturn("REFRESH");
 		given(jwtTokenService.getUserId(refreshToken)).willReturn(userId);
 
@@ -131,7 +126,7 @@ class RefreshTokenServiceImplTest {
 		);
 
 		// then
-		assertThat(ex.getErrorCode()).isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
+		assertThat(ex.getErrorCode()).isEqualTo(AuthErrorCode.INVALID_TOKEN);
 	}
 
 	@Test

@@ -22,6 +22,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import com.recorday.recorday.auth.entity.CustomUserPrincipal;
+import com.recorday.recorday.auth.exception.AuthErrorCode;
+import com.recorday.recorday.auth.exception.CustomAuthenticationException;
 import com.recorday.recorday.auth.jwt.service.JwtTokenService;
 import com.recorday.recorday.auth.service.UserPrincipalLoader;
 
@@ -99,7 +101,8 @@ class JwtAuthenticationFilterTest {
 		request.addHeader("Authorization", "Bearer " + invalidToken);
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
-		given(jwtTokenService.validateToken(invalidToken)).willReturn(false);
+		willThrow(new CustomAuthenticationException(AuthErrorCode.INVALID_TOKEN))
+			.given(jwtTokenService).validateToken(invalidToken);
 
 		//when
 		jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
@@ -108,7 +111,10 @@ class JwtAuthenticationFilterTest {
 		then(jwtTokenService).should().validateToken(invalidToken);
 		then(jwtTokenService).should(never()).getUserId(anyString());
 		then(userPrincipalLoader).shouldHaveNoInteractions();
-		then(filterChain).should().doFilter(request, response);
+
+		then(filterChain).should(never()).doFilter(request, response);
+
+		then(authenticationEntryPoint).should().commence(eq(request), eq(response), any(CustomAuthenticationException.class));
 
 		assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
 	}
@@ -123,7 +129,6 @@ class JwtAuthenticationFilterTest {
 		request.addHeader("Authorization", "Bearer " + validToken);
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
-		given(jwtTokenService.validateToken(validToken)).willReturn(true);
 		given(jwtTokenService.getUserId(validToken)).willReturn(userId);
 		given(userPrincipalLoader.loadUserById(userId)).willReturn(customUserPrincipal);
 		given(customUserPrincipal.getAuthorities()).willReturn(Collections.emptyList());
@@ -156,7 +161,6 @@ class JwtAuthenticationFilterTest {
 			new UsernamePasswordAuthenticationToken("existingUser", null, Collections.emptyList());
 		SecurityContextHolder.getContext().setAuthentication(existingAuth);
 
-		given(jwtTokenService.validateToken(validToken)).willReturn(true);
 
 		//when
 		jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);

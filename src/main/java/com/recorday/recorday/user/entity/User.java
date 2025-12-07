@@ -1,5 +1,7 @@
 package com.recorday.recorday.user.entity;
 
+import java.time.LocalDateTime;
+
 import com.recorday.recorday.auth.oauth2.enums.Provider;
 import com.recorday.recorday.user.enums.UserRole;
 import com.recorday.recorday.user.enums.UserStatus;
@@ -44,6 +46,8 @@ public class User extends BaseEntity {
 	@Column(name = "user_id")
 	private Long id;
 
+
+
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
 	private Provider provider;
@@ -66,19 +70,29 @@ public class User extends BaseEntity {
 	@Column(nullable = false, length = 1024)
 	private String profileUrl;
 
+	@Builder.Default
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
-	private UserStatus deleted = UserStatus.ACTIVE;
+	private UserStatus userStatus = UserStatus.ACTIVE;
+
+	private LocalDateTime deleteRequestedAt;
+
+	public void deleteRequested() {
+		this.userStatus = UserStatus.DELETED_REQUESTED;
+		this.deleteRequestedAt = LocalDateTime.now();
+	}
+
+	public void reActivate() {
+		this.userStatus = UserStatus.ACTIVE;
+		this.deleteRequestedAt = null;
+	}
 
 	public void delete() {
-		this.deleted = UserStatus.DELETED;
+		this.userStatus = UserStatus.DELETED;
 		this.email = "deleted_" + this.id + "@recorday.local";
 		this.username = "탈퇴한 사용자";
 		this.password = null;
 		this.profileUrl = "/static/images/userDefaultImage.png";
-	}
-
-	public void unlinkProvider() {
 		this.providerId = null;
 	}
 

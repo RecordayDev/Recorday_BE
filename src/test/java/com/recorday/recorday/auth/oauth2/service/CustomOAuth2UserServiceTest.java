@@ -70,7 +70,7 @@ class CustomOAuth2UserServiceTest {
 			.password(null)
 			.username("테스터")
 			.profileUrl("https://example.com/profile.png")
-			.deleted(UserStatus.ACTIVE)
+			.userStatus(UserStatus.ACTIVE)
 			.build();
 
 		given(userRepository.findByProviderAndProviderId(provider, "provider-123"))
@@ -134,7 +134,7 @@ class CustomOAuth2UserServiceTest {
 			.password(null)
 			.username("뉴유저")
 			.profileUrl("https://example.com/new.png")
-			.deleted(UserStatus.ACTIVE)
+			.userStatus(UserStatus.ACTIVE)
 			.build();
 
 		given(userRepository.save(any(User.class))).willReturn(savedUser);

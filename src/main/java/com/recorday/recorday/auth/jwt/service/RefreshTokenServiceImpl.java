@@ -11,7 +11,6 @@ import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
 import com.recorday.recorday.exception.BusinessException;
 
 import lombok.RequiredArgsConstructor;
-import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -39,13 +38,11 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 	@Transactional
 	public AuthTokenResponse reissue(String refreshToken) {
 
-		if (!jwtTokenService.validateToken(refreshToken)) {
-			throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
-		}
+		jwtTokenService.validateToken(refreshToken);
 
 		String tokenType = jwtTokenService.getTokenType(refreshToken);
 		if (!"REFRESH".equals(tokenType)) {
-			throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+			throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
 		}
 
 		Long userId = jwtTokenService.getUserId(refreshToken);
@@ -54,7 +51,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 		String storedRefreshToken = stringRedisTemplate.opsForValue().get(key);
 
 		if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
-			throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+			throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
 		}
 
 		String newAccessToken = jwtTokenService.createAccessToken(userId);

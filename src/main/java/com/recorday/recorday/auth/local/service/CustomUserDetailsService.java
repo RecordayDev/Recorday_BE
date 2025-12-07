@@ -26,7 +26,7 @@ public class CustomUserDetailsService implements UserDetailsService, UserPrincip
 		User user = userRepository.findByProviderAndEmail(Provider.RECORDAY, email)
 			.orElseThrow(() -> new CustomAuthenticationException(AuthErrorCode.NOT_EXIST_USER));
 
-		if (user.getDeleted().equals(UserStatus.DELETED)) {
+		if (user.getUserStatus().equals(UserStatus.DELETED)) {
 			throw new CustomAuthenticationException(AuthErrorCode.DELETED_USER);
 		}
 
@@ -38,7 +38,7 @@ public class CustomUserDetailsService implements UserDetailsService, UserPrincip
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomAuthenticationException(AuthErrorCode.NOT_EXIST_USER));
 
-		if (user.getDeleted().equals(UserStatus.DELETED)) {
+		if (user.getUserStatus().equals(UserStatus.DELETED)) {
 			throw new CustomAuthenticationException(AuthErrorCode.DELETED_USER);
 		}
 
