@@ -118,7 +118,7 @@ class LocalSecurityAuthServiceImplTest {
 			.email(email)
 			.password("encoded")
 			.username("테스트 유저")
-			.profileUrl("https://example.com/profile.png")
+			.profileUrl("resources/defaults/userDefaultImage.png")
 			.build();
 	}
   

@@ -119,7 +119,6 @@ class CustomOAuth2UserServiceTest {
 		given(providerUser.getProviderId()).willReturn("provider-456");
 		given(providerUser.getEmail()).willReturn("new@example.com");
 		given(providerUser.getNickname()).willReturn("뉴유저");
-		given(providerUser.getProfileImageUrl()).willReturn("https://example.com/new.png");
 		given(providerUser.getAttributes()).willReturn(oAuth2User.getAttributes());
 
 		given(userRepository.findByProviderAndProviderId(provider, "provider-456"))
@@ -133,7 +132,7 @@ class CustomOAuth2UserServiceTest {
 			.email("new@example.com")
 			.password(null)
 			.username("뉴유저")
-			.profileUrl("https://example.com/new.png")
+			.profileUrl("resources/defaults/userDefaultImage.png")
 			.userStatus(UserStatus.ACTIVE)
 			.build();
 
@@ -198,7 +197,7 @@ class CustomOAuth2UserServiceTest {
 			"id", "provider-123",
 			"email", "test@example.com",
 			"nickname", "테스터",
-			"profile_image", "https://example.com/profile.png"
+			"profile_image", "resources/defaults/userDefaultImage.png"
 		);
 
 		return new DefaultOAuth2User(

@@ -40,6 +40,8 @@ public class SecurityConfig {
 
 	private static final List<String> AUTH_EXCLUDED_PATHS = List.of(
 		"/",
+		"/swagger-ui/**",
+		"/v3/api-docs/**",
 		"/api/recorday/login",
 		"/api/recorday/register",
 		"/api/recorday/reissue",

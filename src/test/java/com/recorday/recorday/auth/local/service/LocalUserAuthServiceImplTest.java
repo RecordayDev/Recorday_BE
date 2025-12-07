@@ -96,7 +96,7 @@ class LocalUserAuthServiceImplTest {
 		assertThat(userArgument.getEmail()).isEqualTo(localRegisterRequest.email());
 		assertThat(userArgument.getUsername()).isEqualTo(localRegisterRequest.username());
 		assertThat(userArgument.getPassword()).isEqualTo(localRegisterRequest.password());
-		assertThat(userArgument.getProfileUrl()).isEqualTo("/static/images/userDefaultImage.png");
+		assertThat(userArgument.getProfileUrl()).isEqualTo("resources/defaults/userDefaultImage.png");
 		assertThat(userArgument.getUserStatus()).isEqualTo(UserStatus.ACTIVE);
 	}
 
