@@ -27,11 +27,11 @@ public class AuthCodeServiceImpl implements AuthCodeService {
 
 	@Override
 	@Transactional
-	public String saveAuthCode(Long userId, String provider) {
+	public String saveAuthCode(String publicId, String provider) {
 		String authCode = createAuthorizationCode();
 		String key = KEY_PREFIX + authCode;
 
-		AuthCodePayload payload = new AuthCodePayload(userId, provider);
+		AuthCodePayload payload = new AuthCodePayload(publicId, provider);
 
 		String value = objectMapper.writeValueAsString(payload);
 

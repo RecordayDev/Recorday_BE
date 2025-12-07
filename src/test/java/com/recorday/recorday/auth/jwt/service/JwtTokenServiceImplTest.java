@@ -16,6 +16,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.recorday.recorday.auth.exception.AuthErrorCode;
+import com.recorday.recorday.auth.exception.CustomAuthenticationException;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -42,10 +45,10 @@ class JwtTokenServiceImplTest {
 	@DisplayName("액세스 토큰 생성")
 	void createAccessToken_containClaims() {
 		//given
-		Long userId = 1L;
+		String publicId = "publicId";
 
 		//when
-		String token = jwtTokenService.createAccessToken(userId);
+		String token = jwtTokenService.createAccessToken(publicId);
 
 		//then
 		Jws<Claims> parsed = Jwts.parserBuilder()
@@ -55,7 +58,7 @@ class JwtTokenServiceImplTest {
 
 		Claims claims = parsed.getBody();
 
-		assertThat(claims.getSubject()).isEqualTo(String.valueOf(userId));
+		assertThat(claims.getSubject()).isEqualTo(publicId);
 		assertThat(claims.getIssuer()).isEqualTo("Recorday");
 		assertThat(claims.get("type", String.class)).isEqualTo("ACCESS");
 		assertThat(claims.getExpiration()).isAfter(new Date());
@@ -65,10 +68,10 @@ class JwtTokenServiceImplTest {
 	@DisplayName("리프레시 토큰 생성")
 	void createRefreshToken_containClaims() {
 		//given
-		Long userId = 1L;
+		String publicId = "publicId";
 
 		//when
-		String token = jwtTokenService.createRefreshToken(userId);
+		String token = jwtTokenService.createRefreshToken(publicId);
 
 		//then
 		Jws<Claims> parsed = Jwts.parserBuilder()
@@ -78,7 +81,7 @@ class JwtTokenServiceImplTest {
 
 		Claims claims = parsed.getBody();
 
-		assertThat(claims.getSubject()).isEqualTo(String.valueOf(userId));
+		assertThat(claims.getSubject()).isEqualTo(publicId);
 		assertThat(claims.getIssuer()).isEqualTo("Recorday");
 		assertThat(claims.get("type", String.class)).isEqualTo("REFRESH");
 		assertThat(claims.getExpiration()).isAfter(new Date());
@@ -88,13 +91,11 @@ class JwtTokenServiceImplTest {
 	@DisplayName("정상 토큰 검증 성공")
 	void validateToken_validToken() {
 		//given
-		String token = jwtTokenService.createAccessToken(1L);
+		String publicId = "publicId";
+		String token = jwtTokenService.createAccessToken(publicId);
 
-		//when
-		boolean isValid = jwtTokenService.validateToken(token);
-
-		//then
-		assertTrue(isValid);
+		//when & then
+		assertDoesNotThrow(() -> jwtTokenService.validateToken(token));
 	}
 
 	@Test
@@ -112,11 +113,10 @@ class JwtTokenServiceImplTest {
 			.signWith(key, SignatureAlgorithm.HS256)
 			.compact();
 
-		//when
-		boolean isValid = jwtTokenService.validateToken(expiredToken);
-
-		//then
-		assertFalse(isValid);
+		//when & then
+		assertThatThrownBy(() -> jwtTokenService.validateToken(expiredToken))
+			.isInstanceOf(CustomAuthenticationException.class)
+			.hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.EXPIRED_TOKEN);
 	}
 
 	@Test
@@ -131,11 +131,10 @@ class JwtTokenServiceImplTest {
 			.signWith(anotherKey, SignatureAlgorithm.HS256)
 			.compact();
 
-		//when
-		boolean isValid = jwtTokenService.validateToken(tokenWithDifferentKey);
-
-		//then
-		assertFalse(isValid);
+		//when & then
+		assertThatThrownBy(() -> jwtTokenService.validateToken(tokenWithDifferentKey))
+			.isInstanceOf(CustomAuthenticationException.class)
+			.hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_TOKEN);
 	}
 
 }

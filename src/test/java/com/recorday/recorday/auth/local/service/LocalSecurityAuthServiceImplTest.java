@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import com.recorday.recorday.auth.entity.CustomUserPrincipal;
 import com.recorday.recorday.auth.exception.AuthErrorCode;
 import com.recorday.recorday.auth.jwt.service.JwtTokenService;
+import com.recorday.recorday.auth.jwt.service.RefreshTokenService;
 import com.recorday.recorday.auth.local.dto.request.LocalLoginRequest;
 import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
 import com.recorday.recorday.auth.oauth2.enums.Provider;
@@ -33,6 +34,9 @@ class LocalSecurityAuthServiceImplTest {
 
 	@Mock
 	private JwtTokenService jwtTokenService;
+
+	@Mock
+	private RefreshTokenService refreshTokenService;
 
 	@InjectMocks
 	private LocalSecurityLoginServiceImpl localSecurityAuthService;
@@ -59,12 +63,23 @@ class LocalSecurityAuthServiceImplTest {
 	@DisplayName("Spring Security를 이용한 로그인 성공")
 	void loginSuccess() {
 		//given
-		given(authenticationManager.authenticate(any(Authentication.class)))
+		String email = "test@test.com";
+		String password = "password";
+		String publicId = "publicId";
+		LocalLoginRequest request = new LocalLoginRequest(email, password);
+
+		// Authentication Mocking
+		Authentication authentication = mock(Authentication.class);
+		CustomUserPrincipal principal = mock(CustomUserPrincipal.class);
+
+		given(principal.getPublicId()).willReturn(publicId);
+		given(authentication.getPrincipal()).willReturn(principal);
+
+		given(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
 			.willReturn(authentication);
-		given(jwtTokenService.createAccessToken(principal.getId()))
-			.willReturn("access-token");
-		given(jwtTokenService.createRefreshToken(principal.getId()))
-			.willReturn("refresh-token");
+
+		given(jwtTokenService.createAccessToken(publicId)).willReturn("access-token");
+		given(jwtTokenService.createRefreshToken(publicId)).willReturn("refresh-token");
 
 		//when
 		AuthTokenResponse response = localSecurityAuthService.login(request);
@@ -73,9 +88,10 @@ class LocalSecurityAuthServiceImplTest {
 		assertThat(response.accessToken()).isEqualTo("access-token");
 		assertThat(response.refreshToken()).isEqualTo("refresh-token");
 
-		then(authenticationManager).should().authenticate(any(Authentication.class));
-		then(jwtTokenService).should().createAccessToken(principal.getId());
-		then(jwtTokenService).should().createRefreshToken(principal.getId());
+		then(authenticationManager).should().authenticate(any(UsernamePasswordAuthenticationToken.class));
+		then(jwtTokenService).should().createAccessToken(publicId);
+		then(jwtTokenService).should().createRefreshToken(publicId);
+		then(refreshTokenService).should().saveRefreshToken(publicId, "refresh-token");
 	}
 
 	@Test
@@ -102,7 +118,7 @@ class LocalSecurityAuthServiceImplTest {
 			.email(email)
 			.password("encoded")
 			.username("테스트 유저")
-			.profileUrl("https://example.com/profile.png")
+			.profileUrl("resources/defaults/userDefaultImage.png")
 			.build();
 	}
   

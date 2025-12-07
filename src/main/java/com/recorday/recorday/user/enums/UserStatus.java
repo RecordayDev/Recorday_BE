@@ -1,5 +1,5 @@
 package com.recorday.recorday.user.enums;
 
 public enum UserStatus {
-	ACTIVE, DELETED
+	ACTIVE, DELETED, DELETED_REQUESTED
 }

@@ -44,10 +44,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		ProviderUser providerUser = ProviderUserFactory.of(provider, oAuth2User, clientRegistration);
 
 		User user = userRepository
-			.findByProviderAndEmail(provider, providerUser.getEmail())
+			.findByProviderAndProviderId(provider, providerUser.getProviderId())
 			.orElseGet(() -> registerOAuth2User(provider, providerUser));
 
-		// if (user.getDeleted().equals(UserStatus.DELETED)) {
+		// if (user.getUserStatus().equals(UserStatus.DELETED_REQUESTED)) {
 		// 	throw new OAuth2AuthenticationException(
 		// 		new OAuth2Error(AuthErrorCode.DELETED_USER.getCode()), AuthErrorCode.DELETED_USER.getMessage()
 		// 	);
@@ -75,8 +75,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 			.email(providerUser.getEmail())
 			.password(null)
 			.username(providerUser.getNickname())
-			.profileUrl(providerUser.getProfileImageUrl())
-			.deleted(UserStatus.ACTIVE)
+			.profileUrl("resources/defaults/userDefaultImage.png")
+			.userStatus(UserStatus.ACTIVE)
 			.build();
 
 		return userRepository.save(user);

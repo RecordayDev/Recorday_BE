@@ -3,7 +3,8 @@ package com.recorday.recorday.storage.service;
 import java.io.InputStream;
 import java.time.Duration;
 
-import com.recorday.recorday.storage.dto.PresignedUploadResponse;
+import com.recorday.recorday.storage.dto.response.PresignedUploadResponse;
+import com.recorday.recorday.storage.enums.UploadType;
 
 public interface FileStorageService {
 
@@ -37,7 +38,7 @@ public interface FileStorageService {
 	 * 클라이언트가 S3에 직접 PUT 업로드 하기 위한 Presigned URL 발급
 	 */
 	PresignedUploadResponse generatePresignedUploadUrl(
-		String dir,
+		UploadType uploadType,
 		String originalFilename,
 		String contentType,
 		Duration expiry,

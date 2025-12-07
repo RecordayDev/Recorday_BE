@@ -1,5 +1,9 @@
 package com.recorday.recorday.user.entity;
 
+import java.time.LocalDateTime;
+import java.util.Random;
+
+import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
 import com.recorday.recorday.auth.oauth2.enums.Provider;
 import com.recorday.recorday.user.enums.UserRole;
 import com.recorday.recorday.user.enums.UserStatus;
@@ -12,6 +16,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -31,6 +37,9 @@ import lombok.NoArgsConstructor;
 			name = "uk_provider_provider_id",
 			columnNames = {"provider", "provider_id"}
 		)
+	},
+	indexes = {
+		@Index(name = "idx_user_public_id", columnList = "public_id")
 	}
 )
 @Getter
@@ -43,6 +52,9 @@ public class User extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "user_id")
 	private Long id;
+
+	@Column(name = "public_id", nullable = false, unique = true, length = 12)
+	private String publicId;
 
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
@@ -66,19 +78,40 @@ public class User extends BaseEntity {
 	@Column(nullable = false, length = 1024)
 	private String profileUrl;
 
+	@Builder.Default
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
-	private UserStatus deleted = UserStatus.ACTIVE;
+	private UserStatus userStatus = UserStatus.ACTIVE;
+
+	private LocalDateTime deleteRequestedAt;
+
+	@PrePersist
+	public void generatePublicId() {
+		if (this.publicId == null) {
+			this.publicId = NanoIdUtils.randomNanoId(
+				NanoIdUtils.DEFAULT_NUMBER_GENERATOR,
+				NanoIdUtils.DEFAULT_ALPHABET,
+				10
+			);
+		}
+	}
+
+	public void deleteRequested() {
+		this.userStatus = UserStatus.DELETED_REQUESTED;
+		this.deleteRequestedAt = LocalDateTime.now();
+	}
+
+	public void reActivate() {
+		this.userStatus = UserStatus.ACTIVE;
+		this.deleteRequestedAt = null;
+	}
 
 	public void delete() {
-		this.deleted = UserStatus.DELETED;
+		this.userStatus = UserStatus.DELETED;
 		this.email = "deleted_" + this.id + "@recorday.local";
 		this.username = "탈퇴한 사용자";
 		this.password = null;
-		this.profileUrl = "/static/images/userDefaultImage.png";
-	}
-
-	public void unlinkProvider() {
+		this.profileUrl = "/resources/defaults/userDefaultImage.png";
 		this.providerId = null;
 	}
 

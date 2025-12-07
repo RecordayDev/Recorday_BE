@@ -11,7 +11,6 @@ import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
 import com.recorday.recorday.exception.BusinessException;
 
 import lombok.RequiredArgsConstructor;
-import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -22,14 +21,14 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 	private final StringRedisTemplate stringRedisTemplate;
 	private final JwtTokenService jwtTokenService;
 
-	private String buildKey(Long userId) {
-		return KEY_PREFIX + userId;
+	private String buildKey(String publicId) {
+		return KEY_PREFIX + publicId;
 	}
 
 	@Override
 	@Transactional
-	public void saveRefreshToken(Long userId, String refreshToken) {
-		String key = buildKey(userId);
+	public void saveRefreshToken(String publicId, String refreshToken) {
+		String key = buildKey(publicId);
 		Duration ttl = Duration.ofMillis(jwtTokenService.getRefreshTokenValidityMillis());
 
 		stringRedisTemplate.opsForValue().set(key, refreshToken, ttl);
@@ -39,26 +38,24 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 	@Transactional
 	public AuthTokenResponse reissue(String refreshToken) {
 
-		if (!jwtTokenService.validateToken(refreshToken)) {
-			throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
-		}
+		jwtTokenService.validateToken(refreshToken);
 
 		String tokenType = jwtTokenService.getTokenType(refreshToken);
 		if (!"REFRESH".equals(tokenType)) {
-			throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+			throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
 		}
 
-		Long userId = jwtTokenService.getUserId(refreshToken);
+		String publicId = jwtTokenService.getUserPublicId(refreshToken);
 
-		String key = buildKey(userId);
+		String key = buildKey(publicId);
 		String storedRefreshToken = stringRedisTemplate.opsForValue().get(key);
 
 		if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
-			throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+			throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
 		}
 
-		String newAccessToken = jwtTokenService.createAccessToken(userId);
-		String newRefreshToken = jwtTokenService.createRefreshToken(userId);
+		String newAccessToken = jwtTokenService.createAccessToken(publicId);
+		String newRefreshToken = jwtTokenService.createRefreshToken(publicId);
 
 		Duration ttl = Duration.ofMillis(jwtTokenService.getRefreshTokenValidityMillis());
 		stringRedisTemplate
@@ -70,8 +67,8 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
 	@Override
 	@Transactional
-	public void logout(Long userId) {
-		String key = buildKey(userId);
+	public void logout(String publicId) {
+		String key = buildKey(publicId);
 		stringRedisTemplate.delete(key);
 	}
 }

@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,7 +21,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.recorday.recorday.storage.dto.PresignedUploadResponse;
+import com.recorday.recorday.storage.dto.response.PresignedUploadResponse;
+import com.recorday.recorday.storage.enums.UploadType;
+import com.recorday.recorday.storage.strategy.UploadPathStrategy;
 
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -47,13 +50,21 @@ class S3FileStorageServiceTest {
 	@Mock
 	private S3Presigner s3Presigner;
 
+	@Mock
+	private UploadPathStrategy profileStrategy;
+
 	private FileStorageService fileStorageService;
 
 	@BeforeEach
 	void setUp() {
+		given(profileStrategy.getUploadType()).willReturn(UploadType.PROFILE);
+
+		Set<UploadPathStrategy> strategies = Set.of(profileStrategy);
+
 		fileStorageService = new S3FileStorageService(
 			s3Client,
 			s3Presigner,
+			strategies,
 			BUCKET
 		);
 	}
@@ -150,39 +161,56 @@ class S3FileStorageServiceTest {
 	@Test
 	@DisplayName("업로드용 presigned URL을 생성하고, key와 URL을 함께 반환한다")
 	void generatePresignedUploadUrl() {
-		//given
-		String dir = "profile";
+		// given
+		UploadType uploadType = UploadType.PROFILE;
 		String originalFilename = "test.png";
 		String contentType = "image/png";
 		Duration expiry = Duration.ofMinutes(5);
+		Long userId = 1L;
 
-		String expectedUrl = "https://example.com/upload/" + dir + "/some-key";
+		// 전략이 생성할 것으로 예상되는 키
+		String expectedKey = "uploads/users/1/profile/generated-uuid.png";
+		String expectedUrl = "https://example.com/" + expectedKey;
 
+		// 1. Mock Strategy 동작 정의
+		given(profileStrategy.generateKey(userId, originalFilename))
+			.willReturn(expectedKey);
+
+		// 2. Mock S3Presigner 동작 정의
 		SdkHttpRequest httpRequest = SdkHttpRequest.builder()
 			.method(SdkHttpMethod.PUT)
 			.uri(URI.create(expectedUrl))
 			.build();
 
-		PresignedPutObjectRequest presigned =
-			PresignedPutObjectRequest.builder()
-				.httpRequest(httpRequest)
-				.expiration(Instant.now().plus(expiry))
-				.signedHeaders(Map.of("Host", List.of("example.com")))
-				.isBrowserExecutable(true)
-				.build();
+		PresignedPutObjectRequest presigned = PresignedPutObjectRequest.builder()
+			.httpRequest(httpRequest)
+			.expiration(Instant.now().plus(expiry))
+			.signedHeaders(Map.of("Host", List.of("example.com")))
+			.isBrowserExecutable(true)
+			.build();
 
-		given(s3Presigner.presignPutObject(any(PutObjectPresignRequest.class))).willReturn(presigned);
+		given(s3Presigner.presignPutObject(any(PutObjectPresignRequest.class)))
+			.willReturn(presigned);
 
-		//when
-		PresignedUploadResponse response = fileStorageService.generatePresignedUploadUrl(dir,
-			originalFilename, contentType, expiry, 1L);
+		// when
+		PresignedUploadResponse response = fileStorageService.generatePresignedUploadUrl(
+			uploadType, originalFilename, contentType, expiry, userId
+		);
 
-		//then
+		// then
 		assertThat(response.uploadUrl()).isEqualTo(expectedUrl);
-		assertThat(response.key()).startsWith(dir + "/");
-		assertThat(response.key()).endsWith(".png");
+		assertThat(response.key()).isEqualTo(expectedKey);
 		assertThat(response.expiresIn()).isEqualTo(expiry);
 
-		then(s3Presigner).should().presignPutObject(any(PutObjectPresignRequest.class));
+		// Verify: 전략이 올바르게 호출되었는지 확인
+		then(profileStrategy).should().generateKey(userId, originalFilename);
+
+		// Verify: S3Presigner에 올바른 Key가 전달되었는지 확인
+		ArgumentCaptor<PutObjectPresignRequest> captor = ArgumentCaptor.forClass(PutObjectPresignRequest.class);
+		then(s3Presigner).should().presignPutObject(captor.capture());
+
+		PutObjectRequest putRequest = captor.getValue().putObjectRequest();
+		assertThat(putRequest.bucket()).isEqualTo(BUCKET);
+		assertThat(putRequest.key()).isEqualTo(expectedKey);
 	}
 }

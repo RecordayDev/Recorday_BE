@@ -50,8 +50,6 @@ public class KakaoOAuth2UnlinkService implements OAuth2UnlinkService {
 
 		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
-		user.unlinkProvider();
-
 		try {
 			restTemplate.postForEntity(
 				kakaoProperties.getUnlinkUrl(),

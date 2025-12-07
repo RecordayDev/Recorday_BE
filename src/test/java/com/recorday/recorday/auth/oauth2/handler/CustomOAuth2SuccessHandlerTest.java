@@ -33,17 +33,17 @@ class CustomOAuth2SuccessHandlerTest {
 	@DisplayName("oauth2 로그인 성공 핸들러")
 	void oAuth2LoginSuccessHandler() throws Exception {
 		// given
-		Long userId = 1L;
+		String publicId = "publicId";
 		Provider provider = Provider.KAKAO;
 		String authCode = "authCode";
-		String redirectBaseUrl = "http://localhost:5173";
+		String redirectBaseUrl = "http://localhost:3000";
 
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
-		given(authCodeService.saveAuthCode(userId, provider.name())).willReturn(authCode);
+		given(authCodeService.saveAuthCode(publicId, provider.name())).willReturn(authCode);
 		given(authentication.getPrincipal()).willReturn(customOAuth2User);
-		given(customOAuth2User.getId()).willReturn(userId);
+		given(customOAuth2User.getPublicId()).willReturn(publicId);
 		given(customOAuth2User.getProvider()).willReturn(provider);
 		CustomOAuth2SuccessHandler successHandler = new CustomOAuth2SuccessHandler(authCodeService);
 
@@ -53,11 +53,11 @@ class CustomOAuth2SuccessHandlerTest {
 		successHandler.onAuthenticationSuccess(request, response, authentication);
 
 		//then
-		then(authCodeService).should().saveAuthCode(userId, provider.name());
-		then(customOAuth2User).should().getId();
+		then(authCodeService).should().saveAuthCode(publicId, provider.name());
+		then(customOAuth2User).should().getPublicId();
 		then(customOAuth2User).should().getProvider();
 
-		String expectedRedirectUrl = redirectBaseUrl + "/success?authorization_code=" + authCode;
+		String expectedRedirectUrl = redirectBaseUrl + "/oauth2/kakao/callback?authorization_code=" + authCode;
 		assertThat(response.getRedirectedUrl()).isEqualTo(expectedRedirectUrl);
 	}
 

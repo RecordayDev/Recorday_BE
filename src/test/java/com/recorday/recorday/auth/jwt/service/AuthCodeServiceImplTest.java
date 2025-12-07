@@ -46,13 +46,13 @@ class AuthCodeServiceImplTest {
 	@DisplayName("saveAuthCode는 authCode를 생성하고 Redis에 payload를 저장한다")
 	void createAuthCode() throws Exception {
 		//given
-		Long userId = 1L;
+		String publicId = "public-id";
 		String provider = Provider.KAKAO.name();
 
 		given(stringRedisTemplate.opsForValue()).willReturn(valueOperations);
 
 		//when
-		String authCode = authCodeService.saveAuthCode(userId, provider);
+		String authCode = authCodeService.saveAuthCode(publicId, provider);
 
 		//then
 		assertNotNull(authCode);
@@ -78,7 +78,7 @@ class AuthCodeServiceImplTest {
 		assertEquals(300L, ttl);
 
 		AuthCodePayload payload = objectMapper.readValue(savedJson, AuthCodePayload.class);
-		assertEquals(userId, payload.userId());
+		assertEquals(publicId, payload.publicId());
 		assertEquals(provider, payload.provider());
 	}
 
@@ -88,7 +88,8 @@ class AuthCodeServiceImplTest {
 		//given
 		String code = "test-code";
 		String key = "AUTH_CODE:" + code;
-		AuthCodePayload payload = new AuthCodePayload(1L, "KAKAO");
+		String publicId = "public-id";
+		AuthCodePayload payload = new AuthCodePayload(publicId, "KAKAO");
 		String json = objectMapper.writeValueAsString(payload);
 
 		given(stringRedisTemplate.opsForValue()).willReturn(valueOperations);
@@ -100,7 +101,7 @@ class AuthCodeServiceImplTest {
 
 		//then
 		assertNotNull(result);
-		assertEquals(1L, result.userId());
+		assertEquals(publicId, result.publicId());
 		assertEquals("KAKAO", result.provider());
 	}
 

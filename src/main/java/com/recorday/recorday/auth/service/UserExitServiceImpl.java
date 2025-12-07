@@ -5,30 +5,34 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.recorday.recorday.auth.exception.AuthErrorCode;
 import com.recorday.recorday.auth.oauth2.service.OAuth2UnlinkService;
-import com.recorday.recorday.exception.BusinessException;
 import com.recorday.recorday.user.entity.User;
-import com.recorday.recorday.user.repository.UserRepository;
+import com.recorday.recorday.util.user.UserReader;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class UserExitServiceImpl implements UserExitService{
+public class UserExitServiceImpl implements UserExitService {
 
-	private final UserRepository userRepository;
+	private final UserReader userReader;
 	private final List<UserDeletionHandler> handlers;
 	private final List<OAuth2UnlinkService> unlinkServices;
 
 	@Override
 	@Transactional
+	public void requestExit(Long userId) {
+
+		User user = userReader.getUserById(userId);
+
+		user.deleteRequested();
+	}
+
+	@Override
+	@Transactional
 	public void exit(Long userId) {
 
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new BusinessException(AuthErrorCode.NOT_EXIST_USER));
-
-		user.delete();
+		User user = userReader.getUserById(userId);
 
 		handlers.forEach(handler -> handler.handleUserDeletion(userId));
 
@@ -38,5 +42,7 @@ public class UserExitServiceImpl implements UserExitService{
 				break;
 			}
 		}
+
+		user.delete();
 	}
 }

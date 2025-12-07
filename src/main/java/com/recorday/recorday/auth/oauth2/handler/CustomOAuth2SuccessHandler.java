@@ -29,10 +29,10 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
 		Authentication authentication) throws IOException, ServletException {
 
 		CustomOAuth2User principal = (CustomOAuth2User)authentication.getPrincipal();
-		Long userId = principal.getId();
+		String publicId = principal.getPublicId();
 		String provider = principal.getProvider().name();
 
-		String authorizationCode = authCodeService.saveAuthCode(userId, provider);
+		String authorizationCode = authCodeService.saveAuthCode(publicId, provider);
 
 		getRedirectStrategy().sendRedirect(request, response,REDIRECT_URL + "/oauth2/kakao/callback?authorization_code=" + authorizationCode);
 	}

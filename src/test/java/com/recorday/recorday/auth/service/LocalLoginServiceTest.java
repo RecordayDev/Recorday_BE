@@ -64,7 +64,7 @@ class LocalLoginServiceTest {
 			.willReturn(Optional.of(user));
 		given(passwordEncoder.matches(rawPassword, encodedPassword))
 			.willReturn(true);
-		given(jwtTokenService.createAccessToken(user.getId()))
+		given(jwtTokenService.createAccessToken(user.getPublicId()))
 			.willReturn("access-token");
 
 		//when
@@ -75,7 +75,7 @@ class LocalLoginServiceTest {
 
 		then(userRepository).should().findByProviderAndEmail(Provider.RECORDAY, email);
 		then(passwordEncoder).should().matches(rawPassword, encodedPassword);
-		then(jwtTokenService).should().createAccessToken(user.getId());
+		then(jwtTokenService).should().createAccessToken(user.getPublicId());
 	}
 
 	@Test
@@ -113,6 +113,7 @@ class LocalLoginServiceTest {
 
 	private User createLocalUser(String email, String encodedPassword) {
 		return User.builder()
+			.publicId("publicId")
 			.provider(Provider.RECORDAY)
 			.userRole(UserRole.ROLE_USER)
 			.email(email)

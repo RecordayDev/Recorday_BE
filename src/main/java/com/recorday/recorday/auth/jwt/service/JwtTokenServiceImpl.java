@@ -2,7 +2,6 @@ package com.recorday.recorday.auth.jwt.service;
 
 import com.recorday.recorday.auth.exception.AuthErrorCode;
 import com.recorday.recorday.auth.exception.CustomAuthenticationException;
-import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -34,22 +33,22 @@ public class JwtTokenServiceImpl implements JwtTokenService{
 	}
 
 	@Override
-	public String createAccessToken(Long userId) {
-		return createToken(userId, accessTokenValidityMillis, "ACCESS");
+	public String createAccessToken(String publicId) {
+		return createToken(publicId, accessTokenValidityMillis, "ACCESS");
 	}
 
 	@Override
-	public String createRefreshToken(Long userId) {
-		return createToken(userId, refreshTokenValidityMillis, "REFRESH");
+	public String createRefreshToken(String publicId) {
+		return createToken(publicId, refreshTokenValidityMillis, "REFRESH");
 	}
 
-	private String createToken(Long userId, long validityMillis, String type) {
+	private String createToken(String publicId, long validityMillis, String type) {
 		Instant now = Instant.now();
 		Date issuedAt = Date.from(now);
 		Date expiry = Date.from(now.plusMillis(validityMillis));
 
 		return Jwts.builder()
-			.setSubject(String.valueOf(userId))
+			.setSubject(publicId)
 			.setIssuedAt(issuedAt)
 			.setExpiration(expiry)
 			.setIssuer("Recorday")
@@ -59,35 +58,28 @@ public class JwtTokenServiceImpl implements JwtTokenService{
 	}
 
 	@Override
-	public boolean validateToken(String token) {
+	public void validateToken(String token) {
 		try {
-			Jws<Claims> claims = Jwts.parserBuilder()
+			Jwts.parserBuilder()
 				.setSigningKey(key)
 				.build()
 				.parseClaimsJws(token);
 
-			// 만료 검사
-			if (claims.getBody().getExpiration().before(new Date())) {
-				throw new CustomAuthenticationException(AuthErrorCode.EXPIRED_ACCESS_TOKEN);
-			}
-
 		} catch (ExpiredJwtException e) {
-			throw new CustomAuthenticationException(AuthErrorCode.EXPIRED_ACCESS_TOKEN);
+			throw new CustomAuthenticationException(AuthErrorCode.EXPIRED_TOKEN);
 		} catch (JwtException | IllegalArgumentException e) {
-			throw new CustomAuthenticationException(AuthErrorCode.INVALID_ACCESS_TOKEN);
+			throw new CustomAuthenticationException(AuthErrorCode.INVALID_TOKEN);
 		}
-		return true;
 	}
 
 	@Override
-	public Long getUserId(String token) {
+	public String getUserPublicId(String token) {
 		Jws<Claims> claims = Jwts.parserBuilder()
 			.setSigningKey(key)
 			.build()
 			.parseClaimsJws(token);
 
-		String subject = claims.getBody().getSubject();
-		return Long.parseLong(subject);
+		return claims.getBody().getSubject();
 	}
 
 	@Override

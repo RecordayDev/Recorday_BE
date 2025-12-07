@@ -2,11 +2,19 @@ package com.recorday.recorday.storage.service;
 
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import com.recorday.recorday.storage.dto.PresignedUploadResponse;
+import com.recorday.recorday.exception.BusinessException;
+import com.recorday.recorday.storage.dto.response.PresignedUploadResponse;
+import com.recorday.recorday.storage.enums.UploadType;
+import com.recorday.recorday.storage.exception.StorageErrorCode;
+import com.recorday.recorday.storage.strategy.UploadPathStrategy;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +35,20 @@ public class S3FileStorageService implements FileStorageService {
 	private final S3Client s3Client;
 	private final S3Presigner s3Presigner;
 	private final String bucketName;
+	private final Map<UploadType, UploadPathStrategy> strategyMap;
+
+	public S3FileStorageService(
+		S3Client s3Client,
+		S3Presigner s3Presigner,
+		Set<UploadPathStrategy> strategies,
+		String bucketName
+	) {
+		this.s3Client = s3Client;
+		this.s3Presigner = s3Presigner;
+		this.bucketName = bucketName;
+		this.strategyMap = strategies.stream()
+			.collect(Collectors.toMap(UploadPathStrategy::getUploadType, Function.identity()));
+	}
 
 	@Deprecated
 	@Override
@@ -87,19 +109,20 @@ public class S3FileStorageService implements FileStorageService {
 
 	@Override
 	@Transactional
-	public PresignedUploadResponse generatePresignedUploadUrl(String dir,
+	public PresignedUploadResponse generatePresignedUploadUrl(
+		UploadType uploadType,
 		String originalFilename,
 		String contentType,
 		Duration expiry,
 		Long userId
 	) {
 
-		dir = dir + "/" + userId;
-		String extension = extractExtension(originalFilename);
-		String uniqueName = UUID.randomUUID() + extension;
-		String key = (!dir.isBlank())
-			? dir + "/" + uniqueName
-			: uniqueName;
+		UploadPathStrategy strategy = strategyMap.get(uploadType);
+		if (strategy == null) {
+			throw new BusinessException(StorageErrorCode.UNSUPPORTED_UPLOAD_TYPE, StorageErrorCode.UNSUPPORTED_UPLOAD_TYPE.getMessage() + ": " + uploadType.name());
+		}
+
+		String key = strategy.generateKey(userId, originalFilename);
 
 		PutObjectRequest putObjectRequest = PutObjectRequest.builder()
 			.bucket(bucketName)
@@ -113,15 +136,11 @@ public class S3FileStorageService implements FileStorageService {
 			.build();
 
 		PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(presignRequest);
-
 		String url = presigned.url().toString();
+
 		log.info("Generated presigned upload URL. bucket={}, key={}", bucketName, key);
 
-		return new PresignedUploadResponse(
-			key,
-			url,
-			expiry
-		);
+		return new PresignedUploadResponse(key, url, expiry);
 	}
 
 	private String extractExtension(String filename) {

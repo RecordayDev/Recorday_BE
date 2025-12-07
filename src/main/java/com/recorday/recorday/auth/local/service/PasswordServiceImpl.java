@@ -7,23 +7,22 @@ import org.springframework.transaction.annotation.Transactional;
 import com.recorday.recorday.auth.exception.AuthErrorCode;
 import com.recorday.recorday.exception.BusinessException;
 import com.recorday.recorday.user.entity.User;
-import com.recorday.recorday.user.repository.UserRepository;
+import com.recorday.recorday.util.user.UserReader;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class PasswordServiceImpl implements PasswordService{
+public class PasswordServiceImpl implements PasswordService {
 
-	private final UserRepository userRepository;
+	private final UserReader userReader;
 	private final PasswordEncoder passwordEncoder;
 
 	@Override
 	@Transactional
 	public void resetPassword(Long userId, String token, String newPassword) {
 
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new BusinessException(AuthErrorCode.NOT_EXIST_USER));
+		User user = userReader.getUserById(userId);
 
 		user.changePassword(newPassword);
 	}
@@ -36,8 +35,7 @@ public class PasswordServiceImpl implements PasswordService{
 			throw new BusinessException(AuthErrorCode.WRONG_PASSWORD);
 		}
 
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new BusinessException(AuthErrorCode.NOT_EXIST_USER));
+		User user = userReader.getUserById(userId);
 
 		user.changePassword(newPassword);
 	}
