@@ -16,12 +16,14 @@ import lombok.Getter;
 public class CustomUserPrincipal implements UserDetails {
 
 	private final Long id;
+	private final String publicId;
 	private final String email;
 	private final String password;
 	private final Collection<? extends GrantedAuthority> authorities;
 
 	public CustomUserPrincipal(User user) {
 		this.id = user.getId();
+		this.publicId = user.getPublicId();
 		this.email = user.getEmail();
 		this.password = user.getPassword();
 		this.authorities = List.of(

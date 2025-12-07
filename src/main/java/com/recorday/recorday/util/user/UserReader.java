@@ -15,7 +15,12 @@ public class UserReader {
 
 	private final UserRepository userRepository;
 
-	public User getUser(Long userId) {
+	public User getUserByPublicId(String publicId) {
+		return userRepository.findByPublicId(publicId)
+			.orElseThrow(() -> new BusinessException(AuthErrorCode.NOT_EXIST_USER));
+	}
+
+	public User getUserById(Long userId) {
 		return userRepository.findById(userId)
 			.orElseThrow(() -> new BusinessException(AuthErrorCode.NOT_EXIST_USER));
 	}

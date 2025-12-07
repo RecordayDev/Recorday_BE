@@ -32,8 +32,8 @@ public class LocalLoginServiceImpl implements LocalLoginService {
 			throw new BusinessException(AuthErrorCode.WRONG_PASSWORD);
 		}
 
-		String accessToken = jwtTokenService.createAccessToken(user.getId());
-		String refreshToken = jwtTokenService.createRefreshToken(user.getId());
+		String accessToken = jwtTokenService.createAccessToken(user.getPublicId());
+		String refreshToken = jwtTokenService.createRefreshToken(user.getPublicId());
 		return new AuthTokenResponse(accessToken, refreshToken);
 	}
 }

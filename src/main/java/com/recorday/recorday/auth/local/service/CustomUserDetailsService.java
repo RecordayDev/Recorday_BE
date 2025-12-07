@@ -12,6 +12,7 @@ import com.recorday.recorday.auth.service.UserPrincipalLoader;
 import com.recorday.recorday.user.entity.User;
 import com.recorday.recorday.user.enums.UserStatus;
 import com.recorday.recorday.user.repository.UserRepository;
+import com.recorday.recorday.util.user.UserReader;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,27 +20,29 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService, UserPrincipalLoader {
 
+	private final UserReader userReader;
 	private final UserRepository userRepository;
 
 	@Override
 	public UserDetails loadUserByUsername(String email) throws CustomAuthenticationException {
+
 		User user = userRepository.findByProviderAndEmail(Provider.RECORDAY, email)
 			.orElseThrow(() -> new CustomAuthenticationException(AuthErrorCode.NOT_EXIST_USER));
 
-		if (user.getUserStatus().equals(UserStatus.DELETED)) {
-			throw new CustomAuthenticationException(AuthErrorCode.DELETED_USER);
+		if (user.getUserStatus().equals(UserStatus.DELETED_REQUESTED)) {
+			throw new CustomAuthenticationException(AuthErrorCode.DELETED_REQUEST_USER);
 		}
 
 		return new CustomUserPrincipal(user);
 	}
 
 	@Override
-	public CustomUserPrincipal loadUserById(Long userId) throws CustomAuthenticationException {
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new CustomAuthenticationException(AuthErrorCode.NOT_EXIST_USER));
+	public CustomUserPrincipal loadUserByPublicId(String publicId) throws CustomAuthenticationException {
 
-		if (user.getUserStatus().equals(UserStatus.DELETED)) {
-			throw new CustomAuthenticationException(AuthErrorCode.DELETED_USER);
+		User user = userReader.getUserByPublicId(publicId);
+
+		if (user.getUserStatus().equals(UserStatus.DELETED_REQUESTED)) {
+			throw new CustomAuthenticationException(AuthErrorCode.DELETED_REQUEST_USER);
 		}
 
 		return new CustomUserPrincipal(user);

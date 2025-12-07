@@ -40,11 +40,13 @@ class UserExitServiceImplTest {
 	private UserExitServiceImpl userExitService;
 
 	Long userId;
+	String publicId;
 	User user;
 
 	@BeforeEach
 	void setUp() throws Exception {
 		userId = 1L;
+		publicId = "publicId";
 		user = User.builder()
 			.provider(Provider.RECORDAY)
 			.userRole(UserRole.ROLE_USER)
@@ -66,14 +68,14 @@ class UserExitServiceImplTest {
 	@DisplayName("탈퇴 시 User soft delete")
 	void exit_softDeleteUser() {
 		//given
-		given(userReader.getUser(userId)).willReturn(user);
+		given(userReader.getUserById(userId)).willReturn(user);
 
 		//when
 		userExitService.exit(userId);
 
 		//then
 		assertThat(user.getUserStatus()).isEqualTo(UserStatus.DELETED);
-		then(userReader).should(times(1)).getUser(userId);
+		then(userReader).should(times(1)).getUserById(userId);
 
 		then(deletionHandler1).should(times(1)).handleUserDeletion(userId);
 		then(deletionHandler2).should(times(1)).handleUserDeletion(userId);
@@ -83,7 +85,7 @@ class UserExitServiceImplTest {
 	@DisplayName("탈퇴 시 provider를 지원하는 OAuth2UnlinkService만 unlink 호출")
 	void exit_callsUnlinkOnlyForSupportedProvider() {
 		//given
-		given(userReader.getUser(userId)).willReturn(user);
+		given(userReader.getUserById(userId)).willReturn(user);
 		given(unlinkService1.supports(user.getProvider())).willReturn(false);
 		given(unlinkService2.supports(user.getProvider())).willReturn(true);
 

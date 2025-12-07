@@ -36,12 +36,12 @@ public class LocalSecurityLoginServiceImpl implements LocalLoginService {
 			);
 
 			CustomUserPrincipal principal = (CustomUserPrincipal)authenticate.getPrincipal();
-			Long userId = principal.getId();
+			String publicId = principal.getPublicId();
 
-			String accessToken = jwtTokenService.createAccessToken(userId);
-			String refreshToken = jwtTokenService.createRefreshToken(userId);
+			String accessToken = jwtTokenService.createAccessToken(publicId);
+			String refreshToken = jwtTokenService.createRefreshToken(publicId);
 
-			refreshTokenService.saveRefreshToken(userId, refreshToken);
+			refreshTokenService.saveRefreshToken(publicId, refreshToken);
 
 			return new AuthTokenResponse(accessToken, refreshToken);
 		} catch (BadCredentialsException e) {

@@ -65,21 +65,21 @@ class LocalSecurityAuthServiceImplTest {
 		//given
 		String email = "test@test.com";
 		String password = "password";
-		Long userId = 1L;
+		String publicId = "publicId";
 		LocalLoginRequest request = new LocalLoginRequest(email, password);
 
 		// Authentication Mocking
 		Authentication authentication = mock(Authentication.class);
 		CustomUserPrincipal principal = mock(CustomUserPrincipal.class);
 
-		given(principal.getId()).willReturn(userId);
+		given(principal.getPublicId()).willReturn(publicId);
 		given(authentication.getPrincipal()).willReturn(principal);
 
 		given(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
 			.willReturn(authentication);
 
-		given(jwtTokenService.createAccessToken(userId)).willReturn("access-token");
-		given(jwtTokenService.createRefreshToken(userId)).willReturn("refresh-token");
+		given(jwtTokenService.createAccessToken(publicId)).willReturn("access-token");
+		given(jwtTokenService.createRefreshToken(publicId)).willReturn("refresh-token");
 
 		//when
 		AuthTokenResponse response = localSecurityAuthService.login(request);
@@ -89,9 +89,9 @@ class LocalSecurityAuthServiceImplTest {
 		assertThat(response.refreshToken()).isEqualTo("refresh-token");
 
 		then(authenticationManager).should().authenticate(any(UsernamePasswordAuthenticationToken.class));
-		then(jwtTokenService).should().createAccessToken(userId);
-		then(jwtTokenService).should().createRefreshToken(userId);
-		then(refreshTokenService).should().saveRefreshToken(userId, "refresh-token");
+		then(jwtTokenService).should().createAccessToken(publicId);
+		then(jwtTokenService).should().createRefreshToken(publicId);
+		then(refreshTokenService).should().saveRefreshToken(publicId, "refresh-token");
 	}
 
 	@Test

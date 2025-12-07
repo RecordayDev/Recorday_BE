@@ -6,7 +6,6 @@ import static org.mockito.BDDMockito.*;
 
 import java.time.Duration;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,17 +41,17 @@ class RefreshTokenServiceImplTest {
 		given(stringRedisTemplate.opsForValue()).willReturn(valueOperations);
 
 		String refreshToken = "old-refresh-token";
-		Long userId = 1L;
-		String key = "REFRESH_TOKEN:USER:" + userId;
+		String publicId = "public-id";
+		String key = "REFRESH_TOKEN:USER:" + publicId;
 		String newAccessToken = "new-access-token";
 		String newRefreshToken = "new-refresh-token";
 		long refreshValidityMillis = 1000L;
 
 		given(jwtTokenService.getTokenType(refreshToken)).willReturn("REFRESH");
-		given(jwtTokenService.getUserId(refreshToken)).willReturn(userId);
+		given(jwtTokenService.getUserPublicId(refreshToken)).willReturn(publicId);
 		given(valueOperations.get(key)).willReturn(refreshToken);
-		given(jwtTokenService.createAccessToken(userId)).willReturn(newAccessToken);
-		given(jwtTokenService.createRefreshToken(userId)).willReturn(newRefreshToken);
+		given(jwtTokenService.createAccessToken(publicId)).willReturn(newAccessToken);
+		given(jwtTokenService.createRefreshToken(publicId)).willReturn(newRefreshToken);
 		given(jwtTokenService.getRefreshTokenValidityMillis()).willReturn(refreshValidityMillis);
 
 		//when
@@ -111,11 +110,11 @@ class RefreshTokenServiceImplTest {
 		given(stringRedisTemplate.opsForValue()).willReturn(valueOperations);
 
 		String refreshToken = "rt-not-in-redis";
-		Long userId = 1L;
-		String key = "REFRESH_TOKEN:USER:" + userId;
+		String publicId = "public-id";
+		String key = "REFRESH_TOKEN:USER:" + publicId;
 
 		given(jwtTokenService.getTokenType(refreshToken)).willReturn("REFRESH");
-		given(jwtTokenService.getUserId(refreshToken)).willReturn(userId);
+		given(jwtTokenService.getUserPublicId(refreshToken)).willReturn(publicId);
 
 		given(valueOperations.get(key)).willReturn(null);
 
@@ -133,11 +132,11 @@ class RefreshTokenServiceImplTest {
 	@DisplayName("로그아웃 시 Redis 에서 리프레시 토큰 키를 삭제한다")
 	void logout_deletesRefreshTokenKey() {
 		// given
-		Long userId = 1L;
-		String key = "REFRESH_TOKEN:USER:" + userId;
+		String publicId = "public-id";
+		String key = "REFRESH_TOKEN:USER:" + publicId;
 
 		// when
-		refreshTokenService.logout(userId);
+		refreshTokenService.logout(publicId);
 
 		// then
 		verify(stringRedisTemplate).delete(key);

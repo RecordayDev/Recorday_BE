@@ -22,7 +22,7 @@ public class PasswordServiceImpl implements PasswordService {
 	@Transactional
 	public void resetPassword(Long userId, String token, String newPassword) {
 
-		User user = userReader.getUser(userId);
+		User user = userReader.getUserById(userId);
 
 		user.changePassword(newPassword);
 	}
@@ -35,7 +35,7 @@ public class PasswordServiceImpl implements PasswordService {
 			throw new BusinessException(AuthErrorCode.WRONG_PASSWORD);
 		}
 
-		User user = userReader.getUser(userId);
+		User user = userReader.getUserById(userId);
 
 		user.changePassword(newPassword);
 	}

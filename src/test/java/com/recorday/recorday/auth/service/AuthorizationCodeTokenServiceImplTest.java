@@ -39,11 +39,12 @@ class AuthorizationCodeTokenServiceImplTest {
 	void issueTokens() {
 		//given
 		String code = "AUTH_CODE_123";
-		AuthCodePayload payload = new AuthCodePayload(1L, "kakao");
+		String publicId = "publicId";
+		AuthCodePayload payload = new AuthCodePayload(publicId, "kakao");
 
 		given(authCodeService.getAuthPayload(code)).willReturn(payload);
-		given(jwtTokenService.createAccessToken(1L)).willReturn("ACCESS_TOKEN");
-		given(jwtTokenService.createRefreshToken(1L)).willReturn("REFRESH_TOKEN");
+		given(jwtTokenService.createAccessToken(publicId)).willReturn("ACCESS_TOKEN");
+		given(jwtTokenService.createRefreshToken(publicId)).willReturn("REFRESH_TOKEN");
 
 		// [추가됨] void 메서드는 willDoNothing이 기본이지만, 명시적으로 적어주거나 생략 가능
 		// willDoNothing().given(refreshTokenService).saveRefreshToken(anyLong(), anyString());
@@ -57,10 +58,10 @@ class AuthorizationCodeTokenServiceImplTest {
 
 		then(authCodeService).should().getAuthPayload(code);
 		then(authCodeService).should().deleteAuthCode(code);
-		then(jwtTokenService).should().createAccessToken(1L);
-		then(jwtTokenService).should().createRefreshToken(1L);
+		then(jwtTokenService).should().createAccessToken(publicId);
+		then(jwtTokenService).should().createRefreshToken(publicId);
 
 		// [추가됨] RefreshToken 저장 호출 검증
-		then(refreshTokenService).should().saveRefreshToken(1L, "REFRESH_TOKEN");
+		then(refreshTokenService).should().saveRefreshToken(publicId, "REFRESH_TOKEN");
 	}
 }

@@ -1,18 +1,15 @@
 package com.recorday.recorday.auth.jwt.filter;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
 import java.io.IOException;
 import java.util.Collections;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -109,7 +106,7 @@ class JwtAuthenticationFilterTest {
 
 		//then
 		then(jwtTokenService).should().validateToken(invalidToken);
-		then(jwtTokenService).should(never()).getUserId(anyString());
+		then(jwtTokenService).should(never()).getUserPublicId(anyString());
 		then(userPrincipalLoader).shouldHaveNoInteractions();
 
 		then(filterChain).should(never()).doFilter(request, response);
@@ -124,13 +121,13 @@ class JwtAuthenticationFilterTest {
 	void doFilter_validToken_setsAuthentication() throws ServletException, IOException {
 		//given
 		String validToken = "valid-token";
-		Long userId = 1L;
+		String publicId = "public-id";
 		MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/test");
 		request.addHeader("Authorization", "Bearer " + validToken);
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
-		given(jwtTokenService.getUserId(validToken)).willReturn(userId);
-		given(userPrincipalLoader.loadUserById(userId)).willReturn(customUserPrincipal);
+		given(jwtTokenService.getUserPublicId(validToken)).willReturn(publicId);
+		given(userPrincipalLoader.loadUserByPublicId(publicId)).willReturn(customUserPrincipal);
 		given(customUserPrincipal.getAuthorities()).willReturn(Collections.emptyList());
 
 		//when
@@ -138,8 +135,8 @@ class JwtAuthenticationFilterTest {
 
 		//then
 		then(jwtTokenService).should().validateToken(validToken);
-		then(jwtTokenService).should().getUserId(validToken);
-		then(userPrincipalLoader).should().loadUserById(userId);
+		then(jwtTokenService).should().getUserPublicId(validToken);
+		then(userPrincipalLoader).should().loadUserByPublicId(publicId);
 		then(filterChain).should().doFilter(request, response);
 
 		var authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -167,7 +164,7 @@ class JwtAuthenticationFilterTest {
 
 		//then
 		then(jwtTokenService).should().validateToken(validToken);
-		then(jwtTokenService).should(never()).getUserId(anyString());
+		then(jwtTokenService).should(never()).getUserPublicId(anyString());
 		then(userPrincipalLoader).shouldHaveNoInteractions();
 		then(filterChain).should().doFilter(request, response);
 

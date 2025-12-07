@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.recorday.recorday.auth.oauth2.enums.Provider;
 import com.recorday.recorday.auth.oauth2.service.OAuth2UnlinkService;
 import com.recorday.recorday.user.entity.User;
 import com.recorday.recorday.util.user.UserReader;
@@ -24,7 +23,7 @@ public class UserExitServiceImpl implements UserExitService {
 	@Transactional
 	public void requestExit(Long userId) {
 
-		User user = userReader.getUser(userId);
+		User user = userReader.getUserById(userId);
 
 		user.deleteRequested();
 	}
@@ -33,7 +32,7 @@ public class UserExitServiceImpl implements UserExitService {
 	@Transactional
 	public void exit(Long userId) {
 
-		User user = userReader.getUser(userId);
+		User user = userReader.getUserById(userId);
 
 		handlers.forEach(handler -> handler.handleUserDeletion(userId));
 

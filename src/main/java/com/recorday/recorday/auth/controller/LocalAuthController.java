@@ -48,9 +48,8 @@ public class LocalAuthController {
 	}
 
 	@DeleteMapping("/recorday/exit")
-	public ResponseEntity<Response<Void>> exit(
-		@AuthenticationPrincipal CustomUserPrincipal principal
-	) {
+	public ResponseEntity<Response<Void>> exit(@AuthenticationPrincipal CustomUserPrincipal principal) {
+
 		userExitService.exit(principal.getId());
 
 		return Response.ok().toResponseEntity();

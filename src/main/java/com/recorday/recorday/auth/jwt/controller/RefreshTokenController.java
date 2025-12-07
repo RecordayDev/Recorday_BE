@@ -32,8 +32,8 @@ public class RefreshTokenController {
 
 	@DeleteMapping("/recorday/logout")
 	public ResponseEntity<Response<Void>> logout(@AuthenticationPrincipal CustomUserPrincipal principal) {
-		Long userId = principal.getId();
-		refreshTokenService.logout(userId);
+
+		refreshTokenService.logout(principal.getPublicId());
 
 		return Response.ok().toResponseEntity();
 	}

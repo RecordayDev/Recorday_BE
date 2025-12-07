@@ -4,9 +4,9 @@ import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
 
 public interface RefreshTokenService {
 
-	void saveRefreshToken(Long userId, String refreshToken);
+	void saveRefreshToken(String publicId, String refreshToken);
 
 	AuthTokenResponse reissue(String refreshToken);
 
-	void logout(Long userId);
+	void logout(String publicId);
 }

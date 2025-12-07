@@ -60,8 +60,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 			if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
-				Long userId = jwtTokenService.getUserId(token);
-				CustomUserPrincipal principal = userPrincipalLoader.loadUserById(userId);
+				String publicId = jwtTokenService.getUserPublicId(token);
+				CustomUserPrincipal principal = userPrincipalLoader.loadUserByPublicId(publicId);
 
 				UsernamePasswordAuthenticationToken authentication =
 					new UsernamePasswordAuthenticationToken(

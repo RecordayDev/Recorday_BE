@@ -24,13 +24,13 @@ public class AuthorizationCodeTokenServiceImpl implements AuthorizationCodeToken
 	public TokenResponse issueTokens(String code) {
 
 		AuthCodePayload authPayload = authCodeService.getAuthPayload(code);
-		Long userId = authPayload.userId();
+		String publicId = authPayload.publicId();
 
-		String accessToken = jwtTokenService.createAccessToken(userId);
-		String refreshToken = jwtTokenService.createRefreshToken(userId);
+		String accessToken = jwtTokenService.createAccessToken(publicId);
+		String refreshToken = jwtTokenService.createRefreshToken(publicId);
 
 		authCodeService.deleteAuthCode(code);
-		refreshTokenService.saveRefreshToken(userId, refreshToken);
+		refreshTokenService.saveRefreshToken(publicId, refreshToken);
 
 		return new TokenResponse(accessToken, refreshToken);
 	}

@@ -33,22 +33,22 @@ public class JwtTokenServiceImpl implements JwtTokenService{
 	}
 
 	@Override
-	public String createAccessToken(Long userId) {
-		return createToken(userId, accessTokenValidityMillis, "ACCESS");
+	public String createAccessToken(String publicId) {
+		return createToken(publicId, accessTokenValidityMillis, "ACCESS");
 	}
 
 	@Override
-	public String createRefreshToken(Long userId) {
-		return createToken(userId, refreshTokenValidityMillis, "REFRESH");
+	public String createRefreshToken(String publicId) {
+		return createToken(publicId, refreshTokenValidityMillis, "REFRESH");
 	}
 
-	private String createToken(Long userId, long validityMillis, String type) {
+	private String createToken(String publicId, long validityMillis, String type) {
 		Instant now = Instant.now();
 		Date issuedAt = Date.from(now);
 		Date expiry = Date.from(now.plusMillis(validityMillis));
 
 		return Jwts.builder()
-			.setSubject(String.valueOf(userId))
+			.setSubject(publicId)
 			.setIssuedAt(issuedAt)
 			.setExpiration(expiry)
 			.setIssuer("Recorday")
@@ -73,14 +73,13 @@ public class JwtTokenServiceImpl implements JwtTokenService{
 	}
 
 	@Override
-	public Long getUserId(String token) {
+	public String getUserPublicId(String token) {
 		Jws<Claims> claims = Jwts.parserBuilder()
 			.setSigningKey(key)
 			.build()
 			.parseClaimsJws(token);
 
-		String subject = claims.getBody().getSubject();
-		return Long.parseLong(subject);
+		return claims.getBody().getSubject();
 	}
 
 	@Override
