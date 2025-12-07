@@ -6,15 +6,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.recorday.recorday.auth.entity.CustomUserPrincipal;
-import com.recorday.recorday.storage.dto.PresignedUploadResponse;
+import com.recorday.recorday.storage.dto.request.PresignedUploadRequest;
+import com.recorday.recorday.storage.dto.response.PresignedUploadResponse;
+import com.recorday.recorday.storage.enums.UploadType;
 import com.recorday.recorday.storage.service.FileStorageService;
 import com.recorday.recorday.util.response.Response;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -26,16 +30,14 @@ public class FileController {
 
 	@PostMapping("/presigned-upload")
 	public ResponseEntity<Response<PresignedUploadResponse>> createPresignedUpload(
-		@RequestParam("dir") String dir,
-		@RequestParam("filename") String filename,
-		@RequestParam("contentType") String contentType,
+		@RequestBody @Valid PresignedUploadRequest request,
 		@AuthenticationPrincipal CustomUserPrincipal principal
 	) {
 
 		PresignedUploadResponse response = fileStorageService.generatePresignedUploadUrl(
-			dir,
-			filename,
-			contentType,
+			request.type(),
+			request.filename(),
+			request.contentType(),
 			Duration.ofMinutes(5),
 			principal.getId()
 		);

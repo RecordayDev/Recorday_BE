@@ -108,7 +108,7 @@ public class SecurityConfig {
 		http
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(AUTH_EXCLUDED_PATHS.toArray(String[]::new)).permitAll()
-				.requestMatchers("/api/auth/guest/**").hasRole("GUEST")
+				.requestMatchers("/api/auth/admin/**").hasRole("ADMIN")
 				.requestMatchers("/api/auth/user/**").hasRole("USER")
 				.anyRequest().authenticated()
 			);

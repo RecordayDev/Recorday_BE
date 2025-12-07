@@ -1,4 +1,4 @@
-package com.recorday.recorday.storage.dto;
+package com.recorday.recorday.storage.dto.response;
 
 import java.time.Duration;
 

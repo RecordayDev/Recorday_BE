@@ -75,7 +75,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 			.email(providerUser.getEmail())
 			.password(null)
 			.username(providerUser.getNickname())
-			.profileUrl(providerUser.getProfileImageUrl())
+			.profileUrl("resources/defaults/userDefaultImage.png")
 			.userStatus(UserStatus.ACTIVE)
 			.build();
 
