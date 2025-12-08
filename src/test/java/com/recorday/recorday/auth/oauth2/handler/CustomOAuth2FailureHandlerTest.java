@@ -47,7 +47,7 @@ class CustomOAuth2FailureHandlerTest {
 		assertThat(response.getStatus()).isEqualTo(302);
 
 		assertThat(response.getRedirectedUrl())
-			.isEqualTo("http://localhost:3000/oauth2/kakao/callback");
+			.isEqualTo("http://localhost:3000/oauth2/callback");
 
 		assertThat(response.getContentAsString()).isEmpty();
 

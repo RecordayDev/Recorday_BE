@@ -57,7 +57,7 @@ class CustomOAuth2SuccessHandlerTest {
 		then(customOAuth2User).should().getPublicId();
 		then(customOAuth2User).should().getProvider();
 
-		String expectedRedirectUrl = redirectBaseUrl + "/oauth2/kakao/callback?authorization_code=" + authCode;
+		String expectedRedirectUrl = redirectBaseUrl + "/oauth2/callback?authorization_code=" + authCode;
 		assertThat(response.getRedirectedUrl()).isEqualTo(expectedRedirectUrl);
 	}
 
