@@ -58,7 +58,7 @@ public class LocalAuthController {
 		@Parameter(hidden = true)
 		@AuthenticationPrincipal CustomUserPrincipal principal
 	) {
-		userExitService.exit(principal.getId());
+		userExitService.requestExit(principal.getId());
 		return Response.ok().toResponseEntity();
 	}
 
