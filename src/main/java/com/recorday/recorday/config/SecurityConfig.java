@@ -43,7 +43,10 @@ public class SecurityConfig {
 		"/api/recorday/login",
 		"/api/recorday/register",
 		"/api/recorday/reissue",
-		"/api/oauth2/**"
+		"/api/recorday/reset/password",
+		"/api/recorday/reset/password/verification",
+		"/api/oauth2/**",
+		"/api/email-auth/**"
 	);
 
 	private static final List<String> CORS_WHITELIST = List.of(
@@ -104,10 +107,10 @@ public class SecurityConfig {
 				UsernamePasswordAuthenticationFilter.class
 			);
 
-		// http
-		// 	.exceptionHandling(ex -> ex
-		// 		.authenticationEntryPoint(customAuthenticationEntryPoint)
-		// 	);
+		http
+			.exceptionHandling(ex -> ex
+				.authenticationEntryPoint(customAuthenticationEntryPoint)
+			);
 
 		http
 			.authorizeHttpRequests(auth -> auth

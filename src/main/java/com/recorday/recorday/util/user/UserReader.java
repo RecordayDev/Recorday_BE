@@ -3,6 +3,7 @@ package com.recorday.recorday.util.user;
 import org.springframework.stereotype.Component;
 
 import com.recorday.recorday.auth.exception.AuthErrorCode;
+import com.recorday.recorday.auth.oauth2.enums.Provider;
 import com.recorday.recorday.exception.BusinessException;
 import com.recorday.recorday.user.entity.User;
 import com.recorday.recorday.user.repository.UserRepository;
@@ -25,4 +26,8 @@ public class UserReader {
 			.orElseThrow(() -> new BusinessException(AuthErrorCode.NOT_EXIST_USER));
 	}
 
+	public User getUserByEmailAndProvider(String email, Provider provider) {
+		return userRepository.findByProviderAndEmail(provider, email)
+			.orElseThrow(() -> new BusinessException(AuthErrorCode.NOT_EXIST_USER));
+	}
 }

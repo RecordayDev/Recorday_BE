@@ -1,13 +1,11 @@
 package com.recorday.recorday.auth.jwt.filter;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.recorday.recorday.auth.entity.CustomUserPrincipal;
@@ -26,18 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-	private static final List<String> EXCLUDED_PATHS = List.of(
-		"/",
-		"/swagger-ui/**",
-		"/v3/api-docs/**",
-		"/login/**",
-		"/api/recorday/login",
-		"/api/recorday/register",
-		"/api/recorday/reissue",
-		"/api/oauth2/**"
-	);
-
-	private final AntPathMatcher pathMatcher = new AntPathMatcher();
 	private final JwtTokenService jwtTokenService;
 	private final UserPrincipalLoader userPrincipalLoader;
 	private final AuthenticationEntryPoint authenticationEntryPoint;
@@ -93,8 +79,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
 		String path = request.getRequestURI();
-
-		return EXCLUDED_PATHS.stream()
-			.anyMatch(pattern -> pathMatcher.match(pattern, path));
+		return path.startsWith("/static") || path.startsWith("/favicon.ico");
 	}
 }
