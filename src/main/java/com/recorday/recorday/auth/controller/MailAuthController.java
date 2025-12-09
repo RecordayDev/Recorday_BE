@@ -11,6 +11,7 @@ import com.recorday.recorday.auth.local.dto.request.EmailAuthRequest;
 import com.recorday.recorday.auth.local.dto.request.EmailAuthVerifyRequest;
 import com.recorday.recorday.auth.local.service.mail.MailAuthCodeService;
 import com.recorday.recorday.auth.local.service.mail.MailAuthService;
+import com.recorday.recorday.common.annotation.PreventDuplicateRequest;
 import com.recorday.recorday.util.response.Response;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,6 +37,7 @@ public class MailAuthController {
 		@ApiResponse(responseCode = "200", description = "인증 코드 발송 성공"),
 		@ApiResponse(responseCode = "500", description = "메일 전송 실패 (서버 에러)")
 	})
+	@PreventDuplicateRequest(key = "#request.email")
 	@PostMapping("/code")
 	public ResponseEntity<Response<Void>> sendAuthCode(@RequestBody @Valid EmailAuthRequest request) {
 
@@ -53,6 +55,7 @@ public class MailAuthController {
 		@ApiResponse(responseCode = "400", description = "인증 실패 (코드가 일치하지 않거나 만료됨)"),
 		@ApiResponse(responseCode = "404", description = "존재하지 않는 사용자")
 	})
+	@PreventDuplicateRequest(key = "#request.email", time = 2000)
 	@PostMapping("/verification")
 	public ResponseEntity<Response<TokenResponse>> verifyAuthCode(@RequestBody @Valid EmailAuthVerifyRequest request) {
 

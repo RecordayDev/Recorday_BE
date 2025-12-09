@@ -24,6 +24,7 @@ import com.recorday.recorday.auth.local.service.LocalUserAuthService;
 import com.recorday.recorday.auth.local.service.PasswordService;
 import com.recorday.recorday.auth.local.service.mail.MailAuthCodeService;
 import com.recorday.recorday.auth.service.UserExitService;
+import com.recorday.recorday.common.annotation.PreventDuplicateRequest;
 import com.recorday.recorday.util.response.Response;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -78,6 +79,7 @@ public class LocalAuthController {
 		@ApiResponse(responseCode = "400", description = "인증 실패 (코드가 일치하지 않거나 만료됨)"),
 		@ApiResponse(responseCode = "404", description = "존재하지 않는 사용자")
 	})
+	@PreventDuplicateRequest(key = "#request.email", time = 2000)
 	@PostMapping("/recorday/reset/password/verification")
 	public ResponseEntity<Response<Void>> verifyAuthCode(@RequestBody @Valid EmailAuthVerifyRequest request) {
 
