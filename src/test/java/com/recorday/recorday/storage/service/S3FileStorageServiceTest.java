@@ -150,7 +150,7 @@ class S3FileStorageServiceTest {
 			.willReturn(presignedGetObjectRequest);
 
 		//when
-		String url = fileStorageService.generatePresignedUrl(key, duration);
+		String url = fileStorageService.generatePresignedUrl(key);
 
 		//then
 		assertThat(url).isEqualTo(expected);
@@ -194,7 +194,7 @@ class S3FileStorageServiceTest {
 
 		// when
 		PresignedUploadResponse response = fileStorageService.generatePresignedUploadUrl(
-			uploadType, originalFilename, contentType, expiry, userId
+			uploadType, originalFilename, contentType, userId
 		);
 
 		// then
