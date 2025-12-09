@@ -2,9 +2,9 @@ package com.recorday.recorday.config;
 
 import java.util.List;
 
+import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,14 +14,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -29,6 +25,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.recorday.recorday.auth.jwt.filter.JwtAuthenticationFilter;
 import com.recorday.recorday.auth.jwt.service.JwtTokenService;
+import com.recorday.recorday.auth.oauth2.service.CustomOAuth2UserService;
+import com.recorday.recorday.auth.oauth2.service.CustomOidcUserService;
 import com.recorday.recorday.auth.service.UserPrincipalLoader;
 
 import lombok.RequiredArgsConstructor;
@@ -57,7 +55,8 @@ public class SecurityConfig {
 	private final UserDetailsService userDetailsService;
 	private final UserPrincipalLoader userPrincipalLoader;
 	private final JwtTokenService jwtTokenService;
-	private final OAuth2UserService<OAuth2UserRequest, OAuth2User> customOAuth2UserService;
+	private final CustomOAuth2UserService customOAuth2UserService;
+	private final CustomOidcUserService customOidcUserService;
 	private final AuthenticationSuccessHandler customOAuth2SuccessHandler;
 	private final AuthenticationFailureHandler customOAuth2FailureHandler;
 	private final AuthenticationEntryPoint customAuthenticationEntryPoint;
@@ -91,7 +90,10 @@ public class SecurityConfig {
 
 		http
 			.oauth2Login(oauth2 -> oauth2
-				.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+				.userInfoEndpoint(userInfo -> userInfo
+					.userService(customOAuth2UserService)
+					.oidcUserService(customOidcUserService)
+				)
 				.successHandler(customOAuth2SuccessHandler)
 				.failureHandler(customOAuth2FailureHandler)
 			);
@@ -102,13 +104,15 @@ public class SecurityConfig {
 				UsernamePasswordAuthenticationFilter.class
 			);
 
-		http
-			.exceptionHandling(ex -> ex
-				.authenticationEntryPoint(customAuthenticationEntryPoint)
-			);
+		// http
+		// 	.exceptionHandling(ex -> ex
+		// 		.authenticationEntryPoint(customAuthenticationEntryPoint)
+		// 	);
 
 		http
 			.authorizeHttpRequests(auth -> auth
+				.requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+				.requestMatchers("/favicon.ico", "/error", "/default-ui.css").permitAll()
 				.requestMatchers(AUTH_EXCLUDED_PATHS.toArray(String[]::new)).permitAll()
 				.requestMatchers("/api/auth/admin/**").hasRole("ADMIN")
 				.requestMatchers("/api/auth/user/**").hasRole("USER")
