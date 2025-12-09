@@ -38,6 +38,17 @@ public class PasswordServiceImpl implements PasswordService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
+	public void verifyOldPassword(Long userId, String oldPassword) {
+
+		User user = userReader.getUserById(userId);
+
+		if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+			throw new BusinessException(AuthErrorCode.WRONG_PASSWORD);
+		}
+	}
+
+	@Override
 	@Transactional
 	public void changePassword(Long userId, String password, String oldPassword, String newPassword) {
 

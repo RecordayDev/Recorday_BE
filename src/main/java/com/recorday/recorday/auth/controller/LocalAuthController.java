@@ -3,6 +3,7 @@ package com.recorday.recorday.auth.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +17,7 @@ import com.recorday.recorday.auth.local.dto.request.LocalChangePasswordRequest;
 import com.recorday.recorday.auth.local.dto.request.LocalLoginRequest;
 import com.recorday.recorday.auth.local.dto.request.LocalRegisterRequest;
 import com.recorday.recorday.auth.local.dto.request.LocalResetPasswordRequest;
+import com.recorday.recorday.auth.local.dto.request.LocalVerifyPasswordRequest;
 import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
 import com.recorday.recorday.auth.local.service.LocalLoginService;
 import com.recorday.recorday.auth.local.service.LocalUserAuthService;
@@ -90,6 +92,18 @@ public class LocalAuthController {
 		@RequestBody LocalResetPasswordRequest request
 	) {
 		passwordService.resetPassword(request.email(), request.newPassword());
+
+		return Response.ok().toResponseEntity();
+	}
+
+	@Operation(summary = "기존 비밀번호 검증", description = "기존 비밀번호를 검증합니다.")
+	@GetMapping("/recorday/verify/password")
+	public ResponseEntity<Response<Void>> verifyPassword(
+		@Parameter(hidden = true)
+		@AuthenticationPrincipal CustomUserPrincipal principal,
+		@RequestBody LocalVerifyPasswordRequest request
+	) {
+		passwordService.verifyOldPassword(principal.getId(), request.password());
 
 		return Response.ok().toResponseEntity();
 	}

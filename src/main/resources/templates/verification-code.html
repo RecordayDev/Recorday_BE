@@ -4,36 +4,81 @@
     <meta charset="UTF-8">
     <title>이메일 인증</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Arial', sans-serif;">
+<body style="margin: 0; padding: 0; background-color: #f5f7f9; font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;">
 
-<div style="background-color: #f4f4f4; padding: 40px 0;">
+<div style="padding: 40px 16px;">
 
-    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <div style="max-width: 520px; margin: 0 auto; background-color: #ffffff; border-radius: 18px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,0.05);">
 
-        <div style="background-color: #00d294; padding: 20px; text-align: center;">
-            <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Recorday</h1>
+        <div style="padding: 28px 32px 18px 32px; text-align: center; border-bottom: 1px solid #f0f0f0;">
+            <div style="display: inline-block; padding: 8px 16px; border-radius: 999px; background-color: #ecfdf7; margin-bottom: 10px;">
+                <span style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #00a876; font-weight: 600;">
+                    Recorday
+                </span>
+            </div>
+            <h1 style="margin: 4px 0 0 0; font-size: 22px; font-weight: 700; color: #222222;">
+                이메일 인증 코드
+            </h1>
+            <p style="margin: 8px 0 0 0; font-size: 13px; color: #777777; line-height: 1.5;">
+                오늘의 순간을 안전하게 기록하기 위해<br>
+                먼저 이메일을 인증해 주세요.
+            </p>
         </div>
 
-        <div style="padding: 40px 20px; text-align: center;">
-            <h2 style="color: #333333; margin-top: 0;">이메일 인증 코드</h2>
-            <p style="color: #666666; font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
-                안녕하세요.<br>
-                서비스 이용을 위해 아래의 인증 코드를 입력해주세요.<br>
-                코드는 5분간 유효합니다.
+        <div style="padding: 28px 32px 24px 32px;">
+            <p style="color: #555555; font-size: 14px; line-height: 1.7; margin: 0 0 22px 0;">
+                안녕하세요. Recorday를 이용해 주셔서 감사합니다. <br>
+                아래 인증 코드를 회원가입 화면에 입력하여 인증을 완료해주세요.
             </p>
 
-            <div style="background-color: #f0fdf4; border: 1px dashed #4F46E5; display: inline-block; padding: 15px 30px; border-radius: 5px; margin-bottom: 30px;">
-                <span style="font-size: 32px; font-weight: bold; color: #4F46E5; letter-spacing: 5px;" th:text="${code}">A1B2C3</span>
+            <div style="text-align: center; margin: 24px 0 24px 0;">
+                <p style="margin: 0 0 10px 0; font-size: 12px; color: #888888; letter-spacing: 0.08em; text-transform: uppercase;">
+                    Verification Code
+                </p>
+                <div style="
+                    display: inline-block;
+                    padding: 14px 26px;
+                    border-radius: 999px;
+                    background: #00d29410;
+                    border: 1px solid #00d29440;
+                    min-width: 230px;
+                    text-align: center;
+                ">
+                    <span style="
+                        font-size: 30px;
+                        font-weight: 800;
+                        color: #00d294;
+                        letter-spacing: 10px;
+                        padding-left: 10px;
+                    " th:text="${code}">
+                        123456
+                    </span>
+                </div>
             </div>
 
-            <p style="color: #999999; font-size: 14px;">
-                본인이 요청하지 않은 경우 이 메일을 무시해주세요.
+            <div style="background-color: #f7faf9; border-radius: 10px; padding: 14px 16px; border: 1px dashed #dde5e2; margin-bottom: 22px;">
+                <p style="margin: 0; font-size: 12px; color: #666666; line-height: 1.6;">
+                    • 인증 코드는 발송 시점부터 <strong>5분간 유효</strong>합니다.<br>
+                    • 코드가 작동하지 않으면, 앱에서 인증 코드를 다시 요청해 주세요.<br>
+                    • 본인이 요청하지 않은 경우 이 메일을 무시하셔도 됩니다.
+                </p>
+            </div>
+
+            <p style="margin: 0; font-size: 13px; color: #8a8a8a; line-height: 1.6;">
+                언제나 특별한 순간을 기록할 수 있도록<br>
+                <strong style="color: #00a875;">Recorday</strong>
             </p>
         </div>
 
-        <div style="background-color: #eeeeee; padding: 15px; text-align: center; color: #888888; font-size: 12px;">
-            &copy; 2025 Recorday. All rights reserved.
+        <div style="border-top: 1px solid #f0f0f0; padding: 16px 32px 18px 32px; background-color: #fafafa; text-align: center;">
+            <p style="margin: 0 0 4px 0; font-size: 11px; color: #aaaaaa; line-height: 1.5;">
+                &copy; 2025 Recorday. All rights reserved.
+            </p>
+            <p style="margin: 0; font-size: 11px; color: #bbbbbb; line-height: 1.4;">
+                본 메일은 발신 전용이며 회신되지 않습니다.
+            </p>
         </div>
+
     </div>
 </div>
 

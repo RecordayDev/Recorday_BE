@@ -6,5 +6,7 @@ public interface PasswordService {
 
 	void resetPassword(String email, String newPassword);
 
+	void verifyOldPassword(Long userId, String oldPassword);
+
 	void changePassword(Long userId, String password, String oldPassword, String newPassword);
 }
