@@ -19,6 +19,13 @@ public record PresignedUploadRequest(
 
 	@NotBlank(message = "컨텐츠 타입은 필수입니다.")
 	@Schema(description = "파일의 Content-Type", example = "image/png")
-	String contentType
+	String contentType,
+
+	@Schema(description = "파일의 임시저장 여부", example = "false", defaultValue = "false")
+	Boolean isTemp
 ) {
+
+	public PresignedUploadRequest {
+		if (isTemp == null) isTemp = false;
+	}
 }

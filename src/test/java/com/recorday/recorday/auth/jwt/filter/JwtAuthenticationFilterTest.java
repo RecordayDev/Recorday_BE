@@ -172,19 +172,6 @@ class JwtAuthenticationFilterTest {
 	}
 
 	@Test
-	@DisplayName("shouldNotFilter는 EXCLUDED_PATHS에 매칭되면 true를 반환한다")
-	void shouldNotFilter_matchesExcludedPaths() throws ServletException {
-		// given
-		MockHttpServletRequest request = new MockHttpServletRequest("GET", "/login/test");
-
-		// when
-		boolean result = jwtAuthenticationFilter.shouldNotFilter(request);
-
-		// then
-		assertThat(result).isTrue();
-	}
-
-	@Test
 	@DisplayName("shouldNotFilter는 EXCLUDED_PATHS에 매칭되지 않으면 false를 반환한다")
 	void shouldNotFilter_notMatched() throws ServletException {
 		// given

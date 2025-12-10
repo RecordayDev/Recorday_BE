@@ -78,10 +78,9 @@ public class User extends BaseEntity {
 	@Column(nullable = false, length = 1024)
 	private String profileUrl;
 
-	@Builder.Default
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
-	private UserStatus userStatus = UserStatus.ACTIVE;
+	private UserStatus userStatus;
 
 	private LocalDateTime deleteRequestedAt;
 
@@ -94,6 +93,10 @@ public class User extends BaseEntity {
 				10
 			);
 		}
+	}
+
+	public void emailAuthenticate() {
+		this.userStatus = UserStatus.ACTIVE;
 	}
 
 	public void deleteRequested() {

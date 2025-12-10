@@ -24,7 +24,7 @@ public class UserServiceImpl implements UserService {
 
 		User user = userReader.getUserById(userId);
 
-		String profilePresignedUrl = fileStorageService.generatePresignedUrl(user.getProfileUrl(), Duration.ofHours(1));
+		String profilePresignedUrl = fileStorageService.generatePresignedUrl(user.getProfileUrl());
 
 		return new UserInfoResponse(user.getId(), user.getEmail(), user.getUsername(), profilePresignedUrl);
 	}

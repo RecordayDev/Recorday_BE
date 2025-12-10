@@ -13,6 +13,7 @@ public enum GlobalErrorCode implements ErrorCode{
 	MISSING_REQUEST_PARAMETER("GEN-004", HttpStatus.BAD_REQUEST, "Missing Request Parameter"),
 	TYPE_MISMATCH("GEN-005", HttpStatus.BAD_REQUEST, "Type Mismatch"),
 	JSON_PARSE_ERROR("GEN-006", HttpStatus.BAD_REQUEST, "Json Parse Error"),
+	DUPLICATE_REQUEST("GEN-007", HttpStatus.BAD_REQUEST, "너무 잦은 요청입니다. 잠시 후 다시 시도해주세요."),
 
 	// 404
 	NOT_FOUND("GEN-007", HttpStatus.NOT_FOUND, "Resource Not Found"),
