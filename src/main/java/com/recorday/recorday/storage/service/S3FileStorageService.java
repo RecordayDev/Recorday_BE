@@ -115,7 +115,8 @@ public class S3FileStorageService implements FileStorageService {
 		UploadType uploadType,
 		String originalFilename,
 		String contentType,
-		Long userId
+		String publicId,
+		boolean isTemp
 	) {
 
 		UploadPathStrategy strategy = strategyMap.get(uploadType);
@@ -124,7 +125,7 @@ public class S3FileStorageService implements FileStorageService {
 				StorageErrorCode.UNSUPPORTED_UPLOAD_TYPE.getMessage() + ": " + uploadType.name());
 		}
 
-		String key = strategy.generateKey(userId, originalFilename);
+		String key = strategy.generateKey(publicId, originalFilename, isTemp);
 
 		PutObjectRequest putObjectRequest = PutObjectRequest.builder()
 			.bucket(bucketName)

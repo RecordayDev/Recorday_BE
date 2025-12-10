@@ -45,7 +45,8 @@ public class FileController {
 			request.type(),
 			request.filename(),
 			request.contentType(),
-			principal.getId()
+			principal.getPublicId(),
+			request.isTemp()
 		);
 
 		return Response.ok(response).toResponseEntity();

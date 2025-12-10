@@ -40,6 +40,7 @@ public interface FileStorageService {
 		UploadType uploadType,
 		String originalFilename,
 		String contentType,
-		Long userId
+		String publicId,
+		boolean isTemp
 	);
 }
