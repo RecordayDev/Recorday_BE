@@ -1,0 +1,49 @@
+package com.recorday.recorday.user.service;
+
+import java.time.Duration;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.recorday.recorday.storage.service.FileStorageService;
+import com.recorday.recorday.user.dto.response.UserInfoResponse;
+import com.recorday.recorday.user.entity.User;
+import com.recorday.recorday.util.user.UserReader;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class UserServiceImpl implements UserService {
+
+	private final UserReader userReader;
+	private final FileStorageService fileStorageService;
+
+	@Override
+	public UserInfoResponse getUserInfo(Long userId) {
+
+		User user = userReader.getUserById(userId);
+
+		String profilePresignedUrl = fileStorageService.generatePresignedUrl(user.getProfileUrl(), Duration.ofHours(1));
+
+		return new UserInfoResponse(user.getId(), user.getEmail(), user.getUsername(), profilePresignedUrl);
+	}
+
+	@Override
+	@Transactional
+	public void changeUsername(Long userId, String username) {
+
+		User user = userReader.getUserById(userId);
+
+		user.changeUsername(username);
+	}
+
+	@Override
+	@Transactional
+	public void changeProfileImage(Long userId, String s3Key) {
+
+		User user = userReader.getUserById(userId);
+
+		user.changeProfileUrl(s3Key);
+	}
+}
