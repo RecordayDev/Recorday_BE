@@ -3,6 +3,7 @@ package com.recorday.recorday.auth.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,19 +11,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.recorday.recorday.auth.entity.CustomUserPrincipal;
+import com.recorday.recorday.auth.jwt.dto.TokenResponse;
+import com.recorday.recorday.auth.local.dto.request.EmailAuthVerifyRequest;
 import com.recorday.recorday.auth.local.dto.request.LocalChangePasswordRequest;
 import com.recorday.recorday.auth.local.dto.request.LocalLoginRequest;
 import com.recorday.recorday.auth.local.dto.request.LocalRegisterRequest;
 import com.recorday.recorday.auth.local.dto.request.LocalResetPasswordRequest;
+import com.recorday.recorday.auth.local.dto.request.LocalVerifyPasswordRequest;
 import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
 import com.recorday.recorday.auth.local.service.LocalLoginService;
 import com.recorday.recorday.auth.local.service.LocalUserAuthService;
 import com.recorday.recorday.auth.local.service.PasswordService;
+import com.recorday.recorday.auth.local.service.mail.MailAuthCodeService;
 import com.recorday.recorday.auth.service.UserExitService;
+import com.recorday.recorday.common.annotation.PreventDuplicateRequest;
 import com.recorday.recorday.util.response.Response;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -62,14 +70,43 @@ public class LocalAuthController {
 		return Response.ok().toResponseEntity();
 	}
 
-	@Operation(summary = "비밀번호 재설정 (강제 변경)", description = "기존 비밀번호 확인 없이 새로운 비밀번호로 변경합니다. (주로 비밀번호 찾기 인증 후 사용)")
+	@Operation(
+		summary = "인증 코드 검증",
+		description = "비밀번호 재설정 인증 코드 검증"
+	)
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "검증 성공"),
+		@ApiResponse(responseCode = "400", description = "인증 실패 (코드가 일치하지 않거나 만료됨)"),
+		@ApiResponse(responseCode = "404", description = "존재하지 않는 사용자")
+	})
+	@PreventDuplicateRequest(key = "#request.email", time = 2000)
+	@PostMapping("/recorday/reset/password/verification")
+	public ResponseEntity<Response<Void>> verifyAuthCode(@RequestBody @Valid EmailAuthVerifyRequest request) {
+
+		passwordService.verifyAuthCode(request.email(), request.code());
+
+		return Response.ok().toResponseEntity();
+	}
+
+	@Operation(summary = "비밀번호 재설정 (찾기)", description = "기존 비밀번호 확인 없이 새로운 비밀번호로 변경합니다.")
 	@PatchMapping("/recorday/reset/password")
 	public ResponseEntity<Response<Void>> resetPassword(
-		@Parameter(hidden = true)
-		@AuthenticationPrincipal CustomUserPrincipal principal,
 		@RequestBody LocalResetPasswordRequest request
 	) {
-		passwordService.resetPassword(principal.getId(), null, request.newPassword());
+		passwordService.resetPassword(request.email(), request.newPassword());
+
+		return Response.ok().toResponseEntity();
+	}
+
+	@Operation(summary = "기존 비밀번호 검증", description = "기존 비밀번호를 검증합니다.")
+	@GetMapping("/recorday/verify/password")
+	public ResponseEntity<Response<Void>> verifyPassword(
+		@Parameter(hidden = true)
+		@AuthenticationPrincipal CustomUserPrincipal principal,
+		@RequestBody LocalVerifyPasswordRequest request
+	) {
+		passwordService.verifyOldPassword(principal.getId(), request.password());
+
 		return Response.ok().toResponseEntity();
 	}
 

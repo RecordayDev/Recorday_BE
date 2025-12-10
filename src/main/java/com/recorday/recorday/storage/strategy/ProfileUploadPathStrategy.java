@@ -15,10 +15,10 @@ public class ProfileUploadPathStrategy implements UploadPathStrategy{
 	}
 
 	@Override
-	public String generateKey(Long userId, String originalFilename) {
+	public String generateKey(String publicId, String originalFilename, boolean isTemp) {
 		String extension = extractExtension(originalFilename);
 		String uniqueName = UUID.randomUUID() + extension;
 
-		return String.format("uploads/users/%d/profile/%s", userId, uniqueName);
+		return String.format("uploads/users/%s/profile/%s", publicId, uniqueName);
 	}
 }

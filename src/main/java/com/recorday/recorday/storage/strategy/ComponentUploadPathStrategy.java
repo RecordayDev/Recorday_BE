@@ -7,14 +7,14 @@ import org.springframework.stereotype.Component;
 import com.recorday.recorday.storage.enums.UploadType;
 
 @Component
-public class FrameUploadPathStrategy implements UploadPathStrategy{
+public class ComponentUploadPathStrategy implements UploadPathStrategy{
 
 	private static final String TEMP_PATH_PREFIX = "temp";
 	private static final String UPLOAD_PATH_PREFIX = "uploads";
 
 	@Override
 	public UploadType getUploadType() {
-		return UploadType.FRAME;
+		return UploadType.COMPONENT;
 	}
 
 	@Override
@@ -23,6 +23,6 @@ public class FrameUploadPathStrategy implements UploadPathStrategy{
 		String extension = extractExtension(originalFilename);
 		String uniqueName = UUID.randomUUID() + extension;
 
-		return String.format("%s/users/%s/frames/%s", rootPath, publicId, uniqueName);
+		return String.format("%s/users/%s/components/%s", rootPath, publicId, uniqueName);
 	}
 }

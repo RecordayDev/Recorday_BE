@@ -150,7 +150,7 @@ class S3FileStorageServiceTest {
 			.willReturn(presignedGetObjectRequest);
 
 		//when
-		String url = fileStorageService.generatePresignedUrl(key, duration);
+		String url = fileStorageService.generatePresignedUrl(key);
 
 		//then
 		assertThat(url).isEqualTo(expected);
@@ -165,15 +165,16 @@ class S3FileStorageServiceTest {
 		UploadType uploadType = UploadType.PROFILE;
 		String originalFilename = "test.png";
 		String contentType = "image/png";
-		Duration expiry = Duration.ofMinutes(5);
-		Long userId = 1L;
+		Duration expiry = Duration.ofDays(1);
+		String publicId = "publicId";
+		boolean isTemp = false;
 
 		// 전략이 생성할 것으로 예상되는 키
-		String expectedKey = "uploads/users/1/profile/generated-uuid.png";
+		String expectedKey = "uploads/users/publicId/profile/generated-uuid.png";
 		String expectedUrl = "https://example.com/" + expectedKey;
 
 		// 1. Mock Strategy 동작 정의
-		given(profileStrategy.generateKey(userId, originalFilename))
+		given(profileStrategy.generateKey(publicId, originalFilename, isTemp))
 			.willReturn(expectedKey);
 
 		// 2. Mock S3Presigner 동작 정의
@@ -194,7 +195,7 @@ class S3FileStorageServiceTest {
 
 		// when
 		PresignedUploadResponse response = fileStorageService.generatePresignedUploadUrl(
-			uploadType, originalFilename, contentType, expiry, userId
+			uploadType, originalFilename, contentType, publicId, isTemp
 		);
 
 		// then
@@ -203,7 +204,7 @@ class S3FileStorageServiceTest {
 		assertThat(response.expiresIn()).isEqualTo(expiry);
 
 		// Verify: 전략이 올바르게 호출되었는지 확인
-		then(profileStrategy).should().generateKey(userId, originalFilename);
+		then(profileStrategy).should().generateKey(publicId, originalFilename, isTemp);
 
 		// Verify: S3Presigner에 올바른 Key가 전달되었는지 확인
 		ArgumentCaptor<PutObjectPresignRequest> captor = ArgumentCaptor.forClass(PutObjectPresignRequest.class);

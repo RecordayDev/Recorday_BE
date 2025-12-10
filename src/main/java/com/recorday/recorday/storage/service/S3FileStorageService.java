@@ -37,6 +37,8 @@ public class S3FileStorageService implements FileStorageService {
 	private final String bucketName;
 	private final Map<UploadType, UploadPathStrategy> strategyMap;
 
+	private static final Duration EXPIRY = Duration.ofDays(1);
+
 	public S3FileStorageService(
 		S3Client s3Client,
 		S3Presigner s3Presigner,
@@ -92,7 +94,7 @@ public class S3FileStorageService implements FileStorageService {
 	}
 
 	@Override
-	public String generatePresignedUrl(String key, Duration expiry) {
+	public String generatePresignedUrl(String key) {
 
 		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
 			.bucket(bucketName)
@@ -100,7 +102,7 @@ public class S3FileStorageService implements FileStorageService {
 			.build();
 
 		GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-			.signatureDuration(expiry)
+			.signatureDuration(EXPIRY)
 			.getObjectRequest(getObjectRequest)
 			.build();
 
@@ -113,16 +115,17 @@ public class S3FileStorageService implements FileStorageService {
 		UploadType uploadType,
 		String originalFilename,
 		String contentType,
-		Duration expiry,
-		Long userId
+		String publicId,
+		boolean isTemp
 	) {
 
 		UploadPathStrategy strategy = strategyMap.get(uploadType);
 		if (strategy == null) {
-			throw new BusinessException(StorageErrorCode.UNSUPPORTED_UPLOAD_TYPE, StorageErrorCode.UNSUPPORTED_UPLOAD_TYPE.getMessage() + ": " + uploadType.name());
+			throw new BusinessException(StorageErrorCode.UNSUPPORTED_UPLOAD_TYPE,
+				StorageErrorCode.UNSUPPORTED_UPLOAD_TYPE.getMessage() + ": " + uploadType.name());
 		}
 
-		String key = strategy.generateKey(userId, originalFilename);
+		String key = strategy.generateKey(publicId, originalFilename, isTemp);
 
 		PutObjectRequest putObjectRequest = PutObjectRequest.builder()
 			.bucket(bucketName)
@@ -131,7 +134,7 @@ public class S3FileStorageService implements FileStorageService {
 			.build();
 
 		PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
-			.signatureDuration(expiry)
+			.signatureDuration(EXPIRY)
 			.putObjectRequest(putObjectRequest)
 			.build();
 
@@ -140,7 +143,7 @@ public class S3FileStorageService implements FileStorageService {
 
 		log.info("Generated presigned upload URL. bucket={}, key={}", bucketName, key);
 
-		return new PresignedUploadResponse(key, url, expiry);
+		return new PresignedUploadResponse(key, url, EXPIRY);
 	}
 
 	private String extractExtension(String filename) {

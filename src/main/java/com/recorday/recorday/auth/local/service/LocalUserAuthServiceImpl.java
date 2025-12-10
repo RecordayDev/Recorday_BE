@@ -37,7 +37,7 @@ public class LocalUserAuthServiceImpl implements LocalUserAuthService{
 			.username(request.username())
 			.password(passwordEncoder.encode(request.password()))
 			.profileUrl("resources/defaults/userDefaultImage.png")
-			.userStatus(UserStatus.ACTIVE)
+			.userStatus(UserStatus.PENDING)
 			.build();
 
 		userRepository.save(user);

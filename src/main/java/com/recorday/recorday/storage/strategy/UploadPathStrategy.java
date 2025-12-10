@@ -6,7 +6,7 @@ public interface UploadPathStrategy {
 
 	UploadType getUploadType();
 
-	String generateKey(Long userId, String originalFilename);
+	String generateKey(String publicId, String originalFilename, boolean isTemp);
 
 	default String extractExtension(String originalFilename) {
 		int index = originalFilename.lastIndexOf(".");

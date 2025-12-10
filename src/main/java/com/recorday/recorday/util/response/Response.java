@@ -3,6 +3,7 @@ package com.recorday.recorday.util.response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.recorday.recorday.exception.ErrorCode;
 
 import lombok.AllArgsConstructor;
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Response<T> {
 
 	private static final String OK_CODE = "GEN-000";
