@@ -31,4 +31,8 @@ public class UserReader {
 			.orElseThrow(() -> new BusinessException(AuthErrorCode.NOT_EXIST_USER));
 	}
 
+	public User getUserByEmailAndProvider(String email, Provider provider) {
+		return userRepository.findByProviderAndEmail(provider, email)
+			.orElseThrow(() -> new BusinessException(AuthErrorCode.NOT_EXIST_USER));
+	}
 }

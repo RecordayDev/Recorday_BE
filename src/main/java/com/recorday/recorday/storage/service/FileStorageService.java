@@ -29,10 +29,9 @@ public interface FileStorageService {
 
 	/**
 	 * @param key    S3 object key
-	 * @param expiry presigned URL 유효 시간
 	 * @return presigned URL 문자열
 	 */
-	String generatePresignedUrl(String key, Duration expiry);
+	String generatePresignedUrl(String key);
 
 	/**
 	 * 클라이언트가 S3에 직접 PUT 업로드 하기 위한 Presigned URL 발급
@@ -41,7 +40,7 @@ public interface FileStorageService {
 		UploadType uploadType,
 		String originalFilename,
 		String contentType,
-		Duration expiry,
-		Long userId
+		String publicId,
+		boolean isTemp
 	);
 }
