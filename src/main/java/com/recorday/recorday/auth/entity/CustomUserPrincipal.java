@@ -41,8 +41,9 @@ public class CustomUserPrincipal implements UserDetails {
 
 		if (status == UserStatus.PENDING) {
 			authorities.add(new SimpleGrantedAuthority("ROLE_PENDING"));
-		}
-		else if (status == UserStatus.ACTIVE) {
+		} else if (status == UserStatus.DELETED_REQUESTED) {
+			authorities.add(new SimpleGrantedAuthority("ROLE_DELETED_REQUESTED"));
+		} else if (status == UserStatus.ACTIVE) {
 			authorities.add(new SimpleGrantedAuthority(userRole.name()));
 		}
 

@@ -28,19 +28,12 @@ public class MailAuthService {
 	}
 
 	@Transactional
-	public TokenResponse verifyAuthCode(String email, String inputCode) {
+	public void verifyAuthCode(String email, String inputCode) {
 
 		mailAuthCodeService.verifyCode(email, inputCode);
 
 		User user = userReader.getUserByEmailAndProvider(email, Provider.RECORDAY);
 
 		user.emailAuthenticate();
-
-		String accessToken = jwtTokenService.createAccessToken(user.getPublicId());
-		String refreshToken = jwtTokenService.createRefreshToken(user.getPublicId());
-
-		refreshTokenService.saveRefreshToken(user.getPublicId(), refreshToken);
-
-		return new TokenResponse(accessToken, refreshToken);
 	}
 }

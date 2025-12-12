@@ -1,6 +1,7 @@
 package com.recorday.recorday.auth.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.recorday.recorday.auth.entity.CustomUserPrincipal;
-import com.recorday.recorday.auth.jwt.dto.TokenResponse;
 import com.recorday.recorday.auth.local.dto.request.EmailAuthVerifyRequest;
 import com.recorday.recorday.auth.local.dto.request.LocalChangePasswordRequest;
 import com.recorday.recorday.auth.local.dto.request.LocalLoginRequest;
@@ -22,7 +22,6 @@ import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
 import com.recorday.recorday.auth.local.service.LocalLoginService;
 import com.recorday.recorday.auth.local.service.LocalUserAuthService;
 import com.recorday.recorday.auth.local.service.PasswordService;
-import com.recorday.recorday.auth.local.service.mail.MailAuthCodeService;
 import com.recorday.recorday.auth.service.UserExitService;
 import com.recorday.recorday.common.annotation.PreventDuplicateRequest;
 import com.recorday.recorday.util.response.Response;
@@ -60,13 +59,25 @@ public class LocalAuthController {
 		return Response.ok().toResponseEntity();
 	}
 
-	@Operation(summary = "회원 탈퇴", description = "현재 로그인된 사용자의 계정을 삭제하고 탈퇴 처리합니다.")
+	@Operation(summary = "회원 탈퇴", description = "현재 로그인된 사용자의 계정을 삭제하고 탈퇴 요청 처리합니다. 7일 뒤 자정에 진짜 삭제됩니다.")
 	@DeleteMapping("/recorday/exit")
 	public ResponseEntity<Response<Void>> exit(
 		@Parameter(hidden = true)
 		@AuthenticationPrincipal CustomUserPrincipal principal
 	) {
 		userExitService.requestExit(principal.getId());
+		return Response.ok().toResponseEntity();
+	}
+
+	@Operation(summary = "회원 탈퇴 취소", description = "현재 로그인된 사용자의 계정을 탈퇴 취소합니다.")
+	@PreAuthorize("hasRole('DELETED_REQUESTED')")
+	@PostMapping("/recorday/reactivate")
+	public ResponseEntity<Response<Void>> reactivate(
+		@Parameter(hidden = true)
+		@AuthenticationPrincipal CustomUserPrincipal principal
+	) {
+		userExitService.reActivate(principal.getId());
+
 		return Response.ok().toResponseEntity();
 	}
 
@@ -98,6 +109,7 @@ public class LocalAuthController {
 		return Response.ok().toResponseEntity();
 	}
 
+	@Deprecated
 	@Operation(summary = "기존 비밀번호 검증", description = "기존 비밀번호를 검증합니다.")
 	@GetMapping("/recorday/verify/password")
 	public ResponseEntity<Response<Void>> verifyPassword(
@@ -117,7 +129,8 @@ public class LocalAuthController {
 		@AuthenticationPrincipal CustomUserPrincipal principal,
 		@RequestBody LocalChangePasswordRequest request
 	) {
-		passwordService.changePassword(principal.getId(), principal.getPassword(), request.oldPassword(), request.newPassword());
+		passwordService.changePassword(principal.getId(), principal.getPassword(), request.oldPassword(),
+			request.newPassword());
 		return Response.ok().toResponseEntity();
 	}
 }

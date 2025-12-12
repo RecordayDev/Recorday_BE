@@ -5,4 +5,6 @@ public interface UserExitService {
 	void requestExit(Long userId);
 
 	void exit(Long userId);
+
+	void reActivate(Long userId);
 }

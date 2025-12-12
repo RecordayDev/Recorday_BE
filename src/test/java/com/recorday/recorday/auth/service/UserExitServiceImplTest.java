@@ -1,5 +1,6 @@
 package com.recorday.recorday.auth.service;
 
+import com.recorday.recorday.auth.jwt.service.RefreshTokenService;
 import com.recorday.recorday.auth.oauth2.service.OAuth2UnlinkService;
 import com.recorday.recorday.exception.BusinessException;
 import com.recorday.recorday.user.entity.User;
@@ -36,6 +37,9 @@ class UserExitServiceImplTest {
 	private UserDeletionHandler userDeletionHandler;
 
 	@Mock
+	private RefreshTokenService refreshTokenService;
+
+	@Mock
 	private OAuth2UnlinkService oAuth2UnlinkService;
 
 	private List<UserDeletionHandler> handlers;
@@ -46,7 +50,7 @@ class UserExitServiceImplTest {
 		handlers = new ArrayList<>();
 		unlinkServices = new ArrayList<>();
 
-		userExitService = new UserExitServiceImpl(userReader, handlers, unlinkServices);
+		userExitService = new UserExitServiceImpl(userReader, refreshTokenService, handlers, unlinkServices);
 	}
 
 	@Test

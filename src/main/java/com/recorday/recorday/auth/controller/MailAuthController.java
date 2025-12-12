@@ -47,8 +47,8 @@ public class MailAuthController {
 	}
 
 	@Operation(
-		summary = "인증 코드 검증 및 토큰 발급",
-		description = "이메일과 인증 코드를 검증합니다. 성공 시 사용자 상태를 활성화(ACTIVE)하고 JWT 토큰을 발급합니다."
+		summary = "인증 코드 검증",
+		description = "이메일과 인증 코드를 검증합니다. 성공 시 사용자 상태를 활성화(ACTIVE)"
 	)
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "검증 성공 및 토큰 발급 완료"),
@@ -57,11 +57,11 @@ public class MailAuthController {
 	})
 	@PreventDuplicateRequest(key = "#request.email", time = 2000)
 	@PostMapping("/verification")
-	public ResponseEntity<Response<TokenResponse>> verifyAuthCode(@RequestBody @Valid EmailAuthVerifyRequest request) {
+	public ResponseEntity<Response<Void>> verifyAuthCode(@RequestBody @Valid EmailAuthVerifyRequest request) {
 
-		TokenResponse tokenResponse = mailAuthService.verifyAuthCode(request.email(), request.code());
+		mailAuthService.verifyAuthCode(request.email(), request.code());
 
-		return Response.ok(tokenResponse).toResponseEntity();
+		return Response.ok().toResponseEntity();
 	}
 
 
