@@ -3,10 +3,14 @@ package com.recorday.recorday.auth.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.recorday.recorday.auth.oauth2.service.OAuth2UnlinkService;
+import com.recorday.recorday.exception.BusinessException;
 import com.recorday.recorday.user.entity.User;
+import com.recorday.recorday.user.enums.UserStatus;
+import com.recorday.recorday.user.exception.UserErrorCode;
 import com.recorday.recorday.util.user.UserReader;
 
 import lombok.RequiredArgsConstructor;
@@ -33,6 +37,10 @@ public class UserExitServiceImpl implements UserExitService {
 	public void exit(Long userId) {
 
 		User user = userReader.getUserById(userId);
+
+		if (user.getUserStatus() != UserStatus.DELETED_REQUESTED) {
+			throw new BusinessException(UserErrorCode.NOT_TARGET);
+		}
 
 		handlers.forEach(handler -> handler.handleUserDeletion(userId));
 
