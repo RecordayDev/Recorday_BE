@@ -115,6 +115,13 @@ public class User extends BaseEntity {
 		this.providerId = null;
 	}
 
+	public boolean isReadyForDeletion(LocalDateTime now) {
+		if (this.userStatus != UserStatus.DELETED_REQUESTED || this.deleteRequestedAt == null) {
+			return false;
+		}
+		return this.deleteRequestedAt.plusDays(7).isBefore(now);
+	}
+
 	public void changePassword(String password) {
 		this.password = password;
 	}
