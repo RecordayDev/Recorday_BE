@@ -1,6 +1,7 @@
 package com.recorday.recorday.auth.local.service;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,6 +38,7 @@ public class PasswordServiceImpl implements PasswordService {
 		String key = KEY_PREFIX + resetToken;
 
 		String email = stringRedisTemplate.opsForValue().get(key);
+		System.out.println(email);
 
 		if (email == null) {
 			throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
@@ -44,9 +46,9 @@ public class PasswordServiceImpl implements PasswordService {
 
 		User user = userReader.getUserByEmailAndProvider(email, Provider.RECORDAY);
 
-		user.changePassword(newPassword);
+		user.changePassword(passwordEncoder.encode(newPassword));
 
-		stringRedisTemplate.delete(resetToken);
+		stringRedisTemplate.delete(key);
 	}
 
 	@Override
@@ -58,7 +60,7 @@ public class PasswordServiceImpl implements PasswordService {
 
 		String key = KEY_PREFIX + resetToken;
 
-		stringRedisTemplate.opsForValue().set(key, email, RESET_TOKEN_EXPIRATION);
+		stringRedisTemplate.opsForValue().set(key, email, RESET_TOKEN_EXPIRATION, TimeUnit.SECONDS);
 
 		return new EmailAuthVerifyResponse(resetToken);
 	}
