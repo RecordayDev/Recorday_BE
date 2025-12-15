@@ -1,11 +1,15 @@
 package com.recorday.recorday.auth.local.service;
 
+import java.util.UUID;
+
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.recorday.recorday.auth.exception.AuthErrorCode;
 import com.recorday.recorday.auth.jwt.dto.TokenResponse;
+import com.recorday.recorday.auth.local.dto.response.EmailAuthVerifyResponse;
 import com.recorday.recorday.auth.local.service.mail.MailAuthCodeService;
 import com.recorday.recorday.auth.oauth2.enums.Provider;
 import com.recorday.recorday.exception.BusinessException;
@@ -21,20 +25,42 @@ public class PasswordServiceImpl implements PasswordService {
 	private final UserReader userReader;
 	private final PasswordEncoder passwordEncoder;
 	private final MailAuthCodeService mailAuthCodeService;
+	private final StringRedisTemplate stringRedisTemplate;
+
+	private static final String KEY_PREFIX = "reset_token:";
+	private static final long RESET_TOKEN_EXPIRATION = 60 * 10L;
 
 	@Override
 	@Transactional
-	public void resetPassword(String email, String newPassword) {
+	public void resetPassword(String resetToken, String newPassword) {
+
+		String key = KEY_PREFIX + resetToken;
+
+		String email = stringRedisTemplate.opsForValue().get(key);
+
+		if (email == null) {
+			throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
+		}
 
 		User user = userReader.getUserByEmailAndProvider(email, Provider.RECORDAY);
 
 		user.changePassword(newPassword);
+
+		stringRedisTemplate.delete(resetToken);
 	}
 
 	@Override
 	@Transactional
-	public void verifyAuthCode(String email, String inputCode) {
+	public EmailAuthVerifyResponse verifyAuthCode(String email, String inputCode) {
 		mailAuthCodeService.verifyCode(email, inputCode);
+
+		String resetToken = UUID.randomUUID().toString();
+
+		String key = KEY_PREFIX + resetToken;
+
+		stringRedisTemplate.opsForValue().set(key, email, RESET_TOKEN_EXPIRATION);
+
+		return new EmailAuthVerifyResponse(resetToken);
 	}
 
 	@Override

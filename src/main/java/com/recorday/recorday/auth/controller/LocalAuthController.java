@@ -19,6 +19,7 @@ import com.recorday.recorday.auth.local.dto.request.LocalRegisterRequest;
 import com.recorday.recorday.auth.local.dto.request.LocalResetPasswordRequest;
 import com.recorday.recorday.auth.local.dto.request.LocalVerifyPasswordRequest;
 import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
+import com.recorday.recorday.auth.local.dto.response.EmailAuthVerifyResponse;
 import com.recorday.recorday.auth.local.service.LocalLoginService;
 import com.recorday.recorday.auth.local.service.LocalUserAuthService;
 import com.recorday.recorday.auth.local.service.PasswordService;
@@ -83,7 +84,7 @@ public class LocalAuthController {
 
 	@Operation(
 		summary = "인증 코드 검증",
-		description = "비밀번호 재설정 인증 코드 검증"
+		description = "비밀번호 재설정 인증 코드 검증, 리셋 토큰은 10분 유효"
 	)
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "검증 성공"),
@@ -92,19 +93,20 @@ public class LocalAuthController {
 	})
 	@PreventDuplicateRequest(key = "#request.email", time = 2000)
 	@PostMapping("/recorday/reset/password/verification")
-	public ResponseEntity<Response<Void>> verifyAuthCode(@RequestBody @Valid EmailAuthVerifyRequest request) {
+	public ResponseEntity<Response<EmailAuthVerifyResponse>> verifyAuthCode(@RequestBody @Valid EmailAuthVerifyRequest request) {
 
-		passwordService.verifyAuthCode(request.email(), request.code());
+		EmailAuthVerifyResponse emailAuthVerifyResponse = passwordService.verifyAuthCode(request.email(),
+			request.code());
 
-		return Response.ok().toResponseEntity();
+		return Response.ok(emailAuthVerifyResponse).toResponseEntity();
 	}
 
-	@Operation(summary = "비밀번호 재설정 (찾기)", description = "기존 비밀번호 확인 없이 새로운 비밀번호로 변경합니다.")
+	@Operation(summary = "비밀번호 재설정 (찾기)", description = "새로운 비밀번호로 변경합니다. 리셋 토큰은 10분 유효")
 	@PatchMapping("/recorday/reset/password")
 	public ResponseEntity<Response<Void>> resetPassword(
 		@RequestBody LocalResetPasswordRequest request
 	) {
-		passwordService.resetPassword(request.email(), request.newPassword());
+		passwordService.resetPassword(request.resetToken(), request.newPassword());
 
 		return Response.ok().toResponseEntity();
 	}
