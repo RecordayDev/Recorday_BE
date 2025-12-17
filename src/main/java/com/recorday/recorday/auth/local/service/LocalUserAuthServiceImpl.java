@@ -1,5 +1,6 @@
 package com.recorday.recorday.auth.local.service;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,9 @@ public class LocalUserAuthServiceImpl implements LocalUserAuthService{
 
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final StringRedisTemplate stringRedisTemplate;
+
+	private static final String KEY_PREFIX = "REGISTER:EMAIL:";
 
 	@Override
 	@Transactional
@@ -30,6 +34,13 @@ public class LocalUserAuthServiceImpl implements LocalUserAuthService{
 			throw new BusinessException(AuthErrorCode.EMAIL_DUPLICATED);
 		}
 
+		String key = KEY_PREFIX + request.email();
+
+		if (stringRedisTemplate.opsForValue().get(key) == null) {
+			throw new BusinessException(AuthErrorCode.REGISTER_EMAIL_ERROR);
+		}
+		stringRedisTemplate.delete(key);
+
 		User user = User.builder()
 			.provider(Provider.RECORDAY)
 			.userRole(UserRole.ROLE_USER)
@@ -37,7 +48,7 @@ public class LocalUserAuthServiceImpl implements LocalUserAuthService{
 			.username(request.username())
 			.password(passwordEncoder.encode(request.password()))
 			.profileUrl("resources/defaults/userDefaultImage.png")
-			.userStatus(UserStatus.PENDING)
+			.userStatus(UserStatus.ACTIVE)
 			.build();
 
 		userRepository.save(user);

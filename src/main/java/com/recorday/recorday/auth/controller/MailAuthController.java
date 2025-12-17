@@ -12,6 +12,7 @@ import com.recorday.recorday.auth.local.dto.request.EmailAuthVerifyRequest;
 import com.recorday.recorday.auth.local.service.mail.MailAuthCodeService;
 import com.recorday.recorday.auth.local.service.mail.MailAuthService;
 import com.recorday.recorday.common.annotation.PreventDuplicateRequest;
+import com.recorday.recorday.common.enums.LockStrategy;
 import com.recorday.recorday.util.response.Response;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,7 +38,7 @@ public class MailAuthController {
 		@ApiResponse(responseCode = "200", description = "인증 코드 발송 성공"),
 		@ApiResponse(responseCode = "500", description = "메일 전송 실패 (서버 에러)")
 	})
-	@PreventDuplicateRequest(key = "#request.email")
+	@PreventDuplicateRequest(key = "#request.email", strategy = LockStrategy.FAIL_OPEN)
 	@PostMapping("/code")
 	public ResponseEntity<Response<Void>> sendAuthCode(@RequestBody @Valid EmailAuthRequest request) {
 
@@ -47,21 +48,20 @@ public class MailAuthController {
 	}
 
 	@Operation(
-		summary = "인증 코드 검증 및 토큰 발급",
-		description = "이메일과 인증 코드를 검증합니다. 성공 시 사용자 상태를 활성화(ACTIVE)하고 JWT 토큰을 발급합니다."
+		summary = "인증 코드 검증",
+		description = "이메일과 인증 코드를 검증합니다."
 	)
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "검증 성공 및 토큰 발급 완료"),
 		@ApiResponse(responseCode = "400", description = "인증 실패 (코드가 일치하지 않거나 만료됨)"),
 		@ApiResponse(responseCode = "404", description = "존재하지 않는 사용자")
 	})
-	@PreventDuplicateRequest(key = "#request.email", time = 2000)
 	@PostMapping("/verification")
-	public ResponseEntity<Response<TokenResponse>> verifyAuthCode(@RequestBody @Valid EmailAuthVerifyRequest request) {
+	public ResponseEntity<Response<Void>> verifyAuthCode(@RequestBody @Valid EmailAuthVerifyRequest request) {
 
-		TokenResponse tokenResponse = mailAuthService.verifyAuthCode(request.email(), request.code());
+		mailAuthService.verifyAuthCode(request.email(), request.code());
 
-		return Response.ok(tokenResponse).toResponseEntity();
+		return Response.ok().toResponseEntity();
 	}
 
 

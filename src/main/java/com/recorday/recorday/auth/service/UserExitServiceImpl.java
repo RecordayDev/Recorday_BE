@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.recorday.recorday.auth.jwt.service.RefreshTokenService;
 import com.recorday.recorday.auth.oauth2.service.OAuth2UnlinkService;
 import com.recorday.recorday.exception.BusinessException;
 import com.recorday.recorday.user.entity.User;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class UserExitServiceImpl implements UserExitService {
 
 	private final UserReader userReader;
+	private final RefreshTokenService refreshTokenService;
 	private final List<UserDeletionHandler> handlers;
 	private final List<OAuth2UnlinkService> unlinkServices;
 
@@ -30,6 +32,7 @@ public class UserExitServiceImpl implements UserExitService {
 		User user = userReader.getUserById(userId);
 
 		user.deleteRequested();
+		refreshTokenService.logout(user.getPublicId());
 	}
 
 	@Override
@@ -51,6 +54,21 @@ public class UserExitServiceImpl implements UserExitService {
 			}
 		}
 
+		refreshTokenService.logout(user.getPublicId());
 		user.delete();
+	}
+
+	@Override
+	@Transactional
+	public void reActivate(Long userId) {
+
+		User user = userReader.getUserById(userId);
+
+		if (user.getUserStatus() != UserStatus.DELETED_REQUESTED) {
+			throw new BusinessException(UserErrorCode.NOT_TARGET);
+		}
+
+		refreshTokenService.logout(user.getPublicId());
+		user.reActivate();
 	}
 }

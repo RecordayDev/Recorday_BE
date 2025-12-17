@@ -39,10 +39,9 @@ public class CustomUserPrincipal implements UserDetails {
 
 		Collection<GrantedAuthority> authorities = new ArrayList<>();
 
-		if (status == UserStatus.PENDING) {
-			authorities.add(new SimpleGrantedAuthority("ROLE_PENDING"));
-		}
-		else if (status == UserStatus.ACTIVE) {
+		if (status == UserStatus.DELETED_REQUESTED) {
+			authorities.add(new SimpleGrantedAuthority("ROLE_DELETED_REQUESTED"));
+		} else if (status == UserStatus.ACTIVE) {
 			authorities.add(new SimpleGrantedAuthority(userRole.name()));
 		}
 

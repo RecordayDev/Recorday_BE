@@ -1,11 +1,11 @@
 package com.recorday.recorday.auth.local.service.mail;
 
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.recorday.recorday.auth.jwt.dto.TokenResponse;
-import com.recorday.recorday.auth.jwt.service.JwtTokenService;
-import com.recorday.recorday.auth.jwt.service.RefreshTokenService;
 import com.recorday.recorday.auth.oauth2.enums.Provider;
 import com.recorday.recorday.user.entity.User;
 import com.recorday.recorday.util.user.UserReader;
@@ -17,30 +17,22 @@ import lombok.RequiredArgsConstructor;
 public class MailAuthService {
 
 	private final MailAuthCodeService mailAuthCodeService;
-	private final UserReader userReader;
-	private final JwtTokenService jwtTokenService;
-	private final RefreshTokenService refreshTokenService;
+	private final StringRedisTemplate stringRedisTemplate;
+
+	private static final String KEY_PREFIX = "REGISTER:EMAIL:";
+	private static final long EXPIRATION = 60 * 10L;
 
 	@Transactional
 	public void sendAuthCode(String email) {
-
 		mailAuthCodeService.sendCode(email);
 	}
 
 	@Transactional
-	public TokenResponse verifyAuthCode(String email, String inputCode) {
+	public void verifyAuthCode(String email, String inputCode) {
 
 		mailAuthCodeService.verifyCode(email, inputCode);
 
-		User user = userReader.getUserByEmailAndProvider(email, Provider.RECORDAY);
-
-		user.emailAuthenticate();
-
-		String accessToken = jwtTokenService.createAccessToken(user.getPublicId());
-		String refreshToken = jwtTokenService.createRefreshToken(user.getPublicId());
-
-		refreshTokenService.saveRefreshToken(user.getPublicId(), refreshToken);
-
-		return new TokenResponse(accessToken, refreshToken);
+		String key = KEY_PREFIX + email;
+		stringRedisTemplate.opsForValue().set(key, "VERIFIED", EXPIRATION, TimeUnit.SECONDS);
 	}
 }

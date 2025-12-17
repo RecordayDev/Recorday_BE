@@ -11,11 +11,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.recorday.recorday.auth.entity.CustomUserPrincipal;
 import com.recorday.recorday.auth.exception.AuthErrorCode;
 import com.recorday.recorday.auth.exception.CustomAuthenticationException;
+import com.recorday.recorday.auth.jwt.dto.TokenResponse;
 import com.recorday.recorday.auth.jwt.service.JwtTokenService;
 import com.recorday.recorday.auth.jwt.service.RefreshTokenService;
 import com.recorday.recorday.auth.local.dto.request.LocalLoginRequest;
 import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
 import com.recorday.recorday.exception.BusinessException;
+import com.recorday.recorday.user.entity.User;
+import com.recorday.recorday.util.user.UserReader;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,13 +26,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class LocalSecurityLoginServiceImpl implements LocalLoginService {
 
+	private final UserReader userReader;
 	private final AuthenticationManager authenticationManager;
 	private final JwtTokenService jwtTokenService;
 	private final RefreshTokenService refreshTokenService;
 
 	@Override
 	@Transactional
-	public AuthTokenResponse login(LocalLoginRequest request) {
+	public TokenResponse login(LocalLoginRequest request) {
 		try {
 			Authentication authenticate = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(request.email(), request.password())
@@ -38,12 +42,14 @@ public class LocalSecurityLoginServiceImpl implements LocalLoginService {
 			CustomUserPrincipal principal = (CustomUserPrincipal)authenticate.getPrincipal();
 			String publicId = principal.getPublicId();
 
+			User user = userReader.getUserByPublicId(publicId);
+
 			String accessToken = jwtTokenService.createAccessToken(publicId);
 			String refreshToken = jwtTokenService.createRefreshToken(publicId);
 
 			refreshTokenService.saveRefreshToken(publicId, refreshToken);
 
-			return new AuthTokenResponse(accessToken, refreshToken);
+			return new TokenResponse(accessToken, refreshToken, user.getUserStatus());
 		} catch (BadCredentialsException e) {
 			throw new BusinessException(AuthErrorCode.INVALID_CREDENTIALS);
 		} catch (AuthenticationException e) {

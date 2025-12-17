@@ -1,8 +1,10 @@
 package com.recorday.recorday.auth.local.service;
 
+import com.recorday.recorday.auth.local.dto.response.EmailAuthVerifyResponse;
+
 public interface PasswordService {
 
-	void verifyAuthCode(String email, String inputCode);
+	EmailAuthVerifyResponse verifyAuthCode(String email, String inputCode);
 
 	void resetPassword(String email, String newPassword);
 
