@@ -1,16 +1,13 @@
 package com.recorday.recorday.auth.local.service.mail;
 
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.recorday.recorday.auth.exception.AuthErrorCode;
-import com.recorday.recorday.auth.jwt.dto.TokenResponse;
-import com.recorday.recorday.auth.jwt.service.JwtTokenService;
-import com.recorday.recorday.auth.jwt.service.RefreshTokenService;
 import com.recorday.recorday.auth.oauth2.enums.Provider;
-import com.recorday.recorday.exception.BusinessException;
 import com.recorday.recorday.user.entity.User;
-import com.recorday.recorday.user.repository.UserRepository;
 import com.recorday.recorday.util.user.UserReader;
 
 import lombok.RequiredArgsConstructor;
@@ -20,16 +17,13 @@ import lombok.RequiredArgsConstructor;
 public class MailAuthService {
 
 	private final MailAuthCodeService mailAuthCodeService;
-	private final UserReader userReader;
-	private final UserRepository userRepository;
+	private final StringRedisTemplate stringRedisTemplate;
+
+	private static final String KEY_PREFIX = "REGISTER:EMAIL:";
+	private static final long EXPIRATION = 60 * 10L;
 
 	@Transactional
 	public void sendAuthCode(String email) {
-
-		if (!userRepository.existsByProviderAndEmail(Provider.RECORDAY, email)) {
-			throw new BusinessException(AuthErrorCode.NOT_EXIST_USER);
-		}
-
 		mailAuthCodeService.sendCode(email);
 	}
 
@@ -38,8 +32,7 @@ public class MailAuthService {
 
 		mailAuthCodeService.verifyCode(email, inputCode);
 
-		User user = userReader.getUserByEmailAndProvider(email, Provider.RECORDAY);
-
-		user.emailAuthenticate();
+		String key = KEY_PREFIX + email;
+		stringRedisTemplate.opsForValue().set(key, "VERIFIED", EXPIRATION, TimeUnit.SECONDS);
 	}
 }

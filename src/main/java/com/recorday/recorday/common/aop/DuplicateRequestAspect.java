@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import com.recorday.recorday.common.annotation.PreventDuplicateRequest;
+import com.recorday.recorday.common.enums.LockStrategy;
 import com.recorday.recorday.exception.BusinessException;
 import com.recorday.recorday.exception.GlobalErrorCode;
 
@@ -36,32 +37,42 @@ public class DuplicateRequestAspect {
 	private final ParameterNameDiscoverer discoverer = new StandardReflectionParameterNameDiscoverer();
 
 	@Around("@annotation(preventDuplicateRequest)")
-	public Object checkDuplicate(ProceedingJoinPoint joinPoint, PreventDuplicateRequest preventDuplicateRequest) throws Throwable {
+	public Object checkDuplicate(ProceedingJoinPoint joinPoint, PreventDuplicateRequest preventDuplicateRequest) throws
+		Throwable {
 		String uniqueKey = generateUniqueKey(joinPoint, preventDuplicateRequest.key());
 		String redisKey = "duplicate:request:" + uniqueKey;
 
 		long time = preventDuplicateRequest.time();
 		TimeUnit unit = preventDuplicateRequest.timeUnit();
-
-		log.debug("중복 요청 체크 시작 - Key: {}, Time: {} {}", redisKey, time, unit);
-
-		Boolean isSuccess = redisTemplate.opsForValue()
-			.setIfAbsent(redisKey, "locked", Duration.ofMillis(unit.toMillis(time)));
-
-		if (isSuccess == null || !isSuccess) {
-			log.warn("중복 요청이 차단되었습니다. Key: {}", redisKey);
-			throw new BusinessException(GlobalErrorCode.DUPLICATE_REQUEST);
-		}
+		LockStrategy strategy = preventDuplicateRequest.strategy();
 
 		try {
-			return joinPoint.proceed();
+			Boolean isSuccess = redisTemplate.opsForValue()
+				.setIfAbsent(redisKey, "locked", Duration.ofMillis(unit.toMillis(time)));
+
+			if (isSuccess == null || !isSuccess) {
+				log.warn("중복 요청 차단됨 - Key: {}", redisKey);
+				throw new BusinessException(GlobalErrorCode.DUPLICATE_REQUEST);
+			}
+
 		} catch (Exception e) {
-			throw e;
+			if (e instanceof BusinessException) {
+				throw e;
+			}
+
+			if (strategy == LockStrategy.FAIL_OPEN) {
+				log.error("Redis 연결 실패 - Fail Open 정책에 의해 로직 실행 허용. Error: {}", e.getMessage());
+			} else {
+				log.error("Redis 연결 실패 - Fail Close 정책에 의해 로직 차단. Error: {}", e.getMessage());
+				throw new BusinessException(GlobalErrorCode.REDIS_CONNECTION_ERROR);
+			}
+
 		}
+		return joinPoint.proceed();
 	}
 
 	private String generateUniqueKey(ProceedingJoinPoint joinPoint, String spelKey) {
-		MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+		MethodSignature signature = (MethodSignature)joinPoint.getSignature();
 		Method method = signature.getMethod();
 
 		// 1. 키를 별도로 지정하지 않은 경우 -> 메서드 이름만 사용 (전역 락이 될 수 있음)

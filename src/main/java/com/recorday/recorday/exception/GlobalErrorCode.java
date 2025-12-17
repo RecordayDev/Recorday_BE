@@ -31,7 +31,8 @@ public enum GlobalErrorCode implements ErrorCode{
 	// 500
 	INTERNAL_SERVER_ERROR("GEN-099", HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"),
 	DATABASE_ERROR("GEN-100", HttpStatus.INTERNAL_SERVER_ERROR, "Database Error"),
-	IO_ERROR("GEN-101", HttpStatus.INTERNAL_SERVER_ERROR, "IO Error");
+	IO_ERROR("GEN-101", HttpStatus.INTERNAL_SERVER_ERROR, "IO Error"),
+	REDIS_CONNECTION_ERROR("GEN-102", HttpStatus.INTERNAL_SERVER_ERROR, "REDIS_CONNECTION_ERROR"),
 	;
 
 	private final String code;
