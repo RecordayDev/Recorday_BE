@@ -1,0 +1,71 @@
+package com.recorday.recorday.frame.entity;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.recorday.recorday.frame.enums.BackgroundType;
+import com.recorday.recorday.user.entity.User;
+import com.recorday.recorday.util.entity.BasePublicIdEntity;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
+@Entity
+@Table(name = "frame")
+@Getter
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Frame extends BasePublicIdEntity {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "frame_id")
+	private Long id;
+
+	@Column(nullable = false)
+	private String name;
+
+	@Column(nullable = false)
+	private String description;
+
+	@Enumerated(EnumType.STRING)
+	private BackgroundType background;
+
+	@Column(nullable = false, length = 1024)
+	private String source;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id")
+	private User user;
+
+	@Builder.Default
+	@OneToMany(mappedBy = "frame", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<FrameComponent> components = new ArrayList<>();
+
+	// 연관관계 편의 메서드
+	public void assignUser(User user) {
+		this.user = user;
+	}
+
+	public void addComponent(FrameComponent component) {
+		this.components.add(component);
+		component.assignFrame(this);
+	}
+}
