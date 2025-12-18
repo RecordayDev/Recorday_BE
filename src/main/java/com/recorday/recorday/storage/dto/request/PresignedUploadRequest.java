@@ -1,5 +1,6 @@
 package com.recorday.recorday.storage.dto.request;
 
+import com.recorday.recorday.storage.enums.ContentType;
 import com.recorday.recorday.storage.enums.UploadType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,15 +18,16 @@ public record PresignedUploadRequest(
 	@Schema(description = "원본 파일명 (확장자 포함)", example = "profile_image.png")
 	String filename,
 
-	@NotBlank(message = "컨텐츠 타입은 필수입니다.")
-	@Schema(description = "파일의 Content-Type", example = "image/png")
-	String contentType,
+	@NotNull(message = "컨텐츠 타입은 필수입니다.")
+	@Schema(description = "파일의 Content-Type, 단순하게 타입만 대문자로 보내면 됨, 확장자와 같아야함", example = "JPEG, JPG, PNG, WEBM ...")
+	ContentType contentType,
 
 	@Schema(description = "파일의 임시저장 여부", example = "false", defaultValue = "false")
 	Boolean isTemp
 ) {
 
 	public PresignedUploadRequest {
-		if (isTemp == null) isTemp = false;
+		if (isTemp == null)
+			isTemp = false;
 	}
 }

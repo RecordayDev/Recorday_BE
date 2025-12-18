@@ -13,6 +13,9 @@ public record PresignedUploadResponse(
 	@Schema(description = "파일 업로드를 수행할 Presigned URL", example = "https://recorday-bucket.s3.ap-northeast-2.amazonaws.com/...")
 	String uploadUrl,    // presigned URL
 
+	@Schema(description = "파일 타입", example = "image/png")
+	String contentType,   // 타입
+
 	@Schema(description = "URL 유효 기간", example = "PT5M")
 	Duration expiresIn   // 유효 시간
 ) {

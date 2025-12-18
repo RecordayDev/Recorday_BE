@@ -1,9 +1,8 @@
 package com.recorday.recorday.auth.local.service.mail;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.recorday.recorday.auth.component.VerificationCodeGenerator;
+import com.recorday.recorday.auth.component.code.VerificationCodeGenerator;
 import com.recorday.recorday.auth.exception.AuthErrorCode;
 import com.recorday.recorday.auth.repository.VerificationTokenRepository;
 import com.recorday.recorday.exception.BusinessException;
@@ -35,7 +34,7 @@ public class MailAuthCodeService {
 
 		String storedCode = repository.getCode(email);
 
-		if (storedCode == null || !storedCode.equals(inputCode)) {
+		if (storedCode == null || !storedCode.equalsIgnoreCase(inputCode)) {
 			throw new BusinessException(AuthErrorCode.EMAIL_AUTH_FAILED);
 		}
 

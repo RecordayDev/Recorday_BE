@@ -1,4 +1,4 @@
-package com.recorday.recorday.auth.component;
+package com.recorday.recorday.auth.component.code;
 
 import java.security.SecureRandom;
 

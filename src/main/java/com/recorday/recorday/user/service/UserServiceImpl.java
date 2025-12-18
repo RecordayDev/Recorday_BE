@@ -1,7 +1,5 @@
 package com.recorday.recorday.user.service;
 
-import java.time.Duration;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +22,7 @@ public class UserServiceImpl implements UserService {
 
 		User user = userReader.getUserById(userId);
 
-		String profilePresignedUrl = fileStorageService.generatePresignedUrl(user.getProfileUrl());
+		String profilePresignedUrl = fileStorageService.generatePresignedGetUrl(user.getProfileUrl());
 
 		return new UserInfoResponse(user.getId(), user.getEmail(), user.getUsername(), profilePresignedUrl);
 	}

@@ -109,10 +109,10 @@ public class SecurityConfig {
 				UsernamePasswordAuthenticationFilter.class
 			);
 
-		// http
-		// 	.exceptionHandling(ex -> ex
-		// 		.authenticationEntryPoint(customAuthenticationEntryPoint)
-		// 	);
+		http
+			.exceptionHandling(ex -> ex
+				.authenticationEntryPoint(customAuthenticationEntryPoint)
+			);
 
 		http
 			.authorizeHttpRequests(auth -> auth

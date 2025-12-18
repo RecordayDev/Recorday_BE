@@ -1,14 +1,16 @@
 package com.recorday.recorday.user.entity;
 
 import java.time.LocalDateTime;
-import java.util.Random;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
 import com.recorday.recorday.auth.oauth2.enums.Provider;
+import com.recorday.recorday.frame.entity.Frame;
 import com.recorday.recorday.user.enums.UserRole;
 import com.recorday.recorday.user.enums.UserStatus;
-import com.recorday.recorday.util.entity.BaseEntity;
+import com.recorday.recorday.util.entity.BasePublicIdEntity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -17,13 +19,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
-import jakarta.persistence.PrePersist;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(
@@ -43,18 +46,15 @@ import lombok.NoArgsConstructor;
 	}
 )
 @Getter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class User extends BaseEntity {
+public class User extends BasePublicIdEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "user_id")
 	private Long id;
-
-	@Column(name = "public_id", nullable = false, unique = true, length = 12)
-	private String publicId;
 
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
@@ -84,20 +84,20 @@ public class User extends BaseEntity {
 
 	private LocalDateTime deleteRequestedAt;
 
-	@PrePersist
-	public void generatePublicId() {
-		if (this.publicId == null) {
-			this.publicId = NanoIdUtils.randomNanoId(
-				NanoIdUtils.DEFAULT_NUMBER_GENERATOR,
-				NanoIdUtils.DEFAULT_ALPHABET,
-				10
-			);
-		}
+	@Builder.Default
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Frame> frames = new ArrayList<>();
+
+	// 연관관계 편의 메서드
+	public void addFrame(Frame frame) {
+		this.frames.add(frame);
+		frame.assignUser(this);
 	}
 
-	public void emailAuthenticate() {
-		this.userStatus = UserStatus.ACTIVE;
+	public void removeFrame(Frame frame) {
+		this.frames.remove(frame);
 	}
+
 
 	public void deleteRequested() {
 		this.userStatus = UserStatus.DELETED_REQUESTED;

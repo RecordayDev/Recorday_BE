@@ -1,15 +1,13 @@
-package com.recorday.recorday.auth.component;
+package com.recorday.recorday.auth.component.auth;
 
 import java.io.IOException;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import com.recorday.recorday.auth.exception.AuthErrorCode;
 import com.recorday.recorday.auth.exception.CustomAuthenticationException;
-import com.recorday.recorday.exception.ErrorCode;
 import com.recorday.recorday.util.response.Response;
 
 import jakarta.servlet.ServletException;

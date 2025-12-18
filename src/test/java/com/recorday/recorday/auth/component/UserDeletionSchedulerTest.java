@@ -1,6 +1,5 @@
 package com.recorday.recorday.auth.component;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
 import java.time.Clock;
@@ -17,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.recorday.recorday.auth.batch.UserExitBatchService;
+import com.recorday.recorday.auth.component.deletion.scheduler.UserDeletionScheduler;
 import com.recorday.recorday.exception.BusinessException;
 import com.recorday.recorday.user.enums.UserStatus;
 import com.recorday.recorday.user.exception.UserErrorCode;
