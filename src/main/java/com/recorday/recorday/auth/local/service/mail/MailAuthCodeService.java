@@ -35,7 +35,7 @@ public class MailAuthCodeService {
 
 		String storedCode = repository.getCode(email);
 
-		if (storedCode == null || !storedCode.equals(inputCode)) {
+		if (storedCode == null || !storedCode.equalsIgnoreCase(inputCode)) {
 			throw new BusinessException(AuthErrorCode.EMAIL_AUTH_FAILED);
 		}
 
