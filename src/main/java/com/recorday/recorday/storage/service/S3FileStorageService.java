@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.recorday.recorday.exception.BusinessException;
 import com.recorday.recorday.storage.dto.response.PresignedUploadResponse;
+import com.recorday.recorday.storage.enums.ContentType;
 import com.recorday.recorday.storage.enums.UploadType;
 import com.recorday.recorday.storage.exception.StorageErrorCode;
 import com.recorday.recorday.storage.strategy.UploadPathStrategy;
@@ -94,7 +95,7 @@ public class S3FileStorageService implements FileStorageService {
 	}
 
 	@Override
-	public String generatePresignedUrl(String key) {
+	public String generatePresignedGetUrl(String key) {
 
 		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
 			.bucket(bucketName)
@@ -114,10 +115,16 @@ public class S3FileStorageService implements FileStorageService {
 	public PresignedUploadResponse generatePresignedUploadUrl(
 		UploadType uploadType,
 		String originalFilename,
-		String contentType,
+		ContentType contentType,
 		String publicId,
 		boolean isTemp
 	) {
+
+		String extension = extractExtension(originalFilename);
+		ContentType validatedContentType = ContentType.validate(
+			contentType.getMimeType(),
+			extension
+		);
 
 		UploadPathStrategy strategy = strategyMap.get(uploadType);
 		if (strategy == null) {
@@ -130,7 +137,7 @@ public class S3FileStorageService implements FileStorageService {
 		PutObjectRequest putObjectRequest = PutObjectRequest.builder()
 			.bucket(bucketName)
 			.key(key)
-			.contentType(contentType)
+			.contentType(validatedContentType.getMimeType())
 			.build();
 
 		PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
@@ -143,17 +150,13 @@ public class S3FileStorageService implements FileStorageService {
 
 		log.info("Generated presigned upload URL. bucket={}, key={}", bucketName, key);
 
-		return new PresignedUploadResponse(key, url, EXPIRY);
+		return new PresignedUploadResponse(key, url, validatedContentType.getMimeType(), EXPIRY);
 	}
 
 	private String extractExtension(String filename) {
-		if (filename == null) {
-			return "";
-		}
+		if (filename == null) return "";
 		int idx = filename.lastIndexOf('.');
-		if (idx == -1) {
-			return "";
-		}
-		return filename.substring(idx);
+		if (idx == -1 || idx == filename.length() - 1) return "";
+		return filename.substring(idx + 1);
 	}
 }
