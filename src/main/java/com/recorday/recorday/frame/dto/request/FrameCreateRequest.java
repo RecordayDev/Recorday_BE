@@ -18,7 +18,7 @@ public record FrameCreateRequest(
 	String description,
 
 	@NotBlank(message = "주소는 필수입니다.")
-	String key,
+	String previewKey,
 
 	@NotNull(message = "프레임 타입은 필수입니다.")
 	FrameType frameType,
@@ -35,7 +35,7 @@ public record FrameCreateRequest(
 	public record ComponentRequest(
 		String id,
 		@NotNull ComponentType type,
-		@NotBlank String key,
+		@NotBlank String source,
 		double x,
 		double y,
 		double width,

@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-class VideoBackgroundAttributes extends BackgroundAttributes {
+public class VideoBackgroundAttributes extends BackgroundAttributes {
 	private String key;
 	private boolean autoPlay;
 	private boolean loop;
