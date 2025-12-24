@@ -2,7 +2,7 @@ package com.recorday.recorday.frame.component;
 
 import com.recorday.recorday.exception.BusinessException;
 import com.recorday.recorday.exception.GlobalErrorCode;
-import com.recorday.recorday.frame.dto.request.BackgroundAttributes;
+import com.recorday.recorday.frame.entity.attributes.BackgroundAttributes;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

@@ -43,4 +43,6 @@ public interface FileStorageService {
 		String publicId,
 		boolean isTemp
 	);
+
+	String moveFile(String sourceUrl, String destinationKey);
 }

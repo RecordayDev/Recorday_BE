@@ -3,12 +3,15 @@ package com.recorday.recorday.frame.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.recorday.recorday.frame.enums.BackgroundType;
+import com.recorday.recorday.frame.component.BackgroundConverter;
+import com.recorday.recorday.frame.entity.attributes.BackgroundAttributes;
+import com.recorday.recorday.frame.enums.FrameType;
 import com.recorday.recorday.user.entity.User;
 import com.recorday.recorday.util.entity.BasePublicIdEntity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -40,16 +43,24 @@ public class Frame extends BasePublicIdEntity {
 	private Long id;
 
 	@Column(nullable = false)
-	private String name;
+	private String title;
 
 	@Column(nullable = false)
 	private String description;
 
-	@Enumerated(EnumType.STRING)
-	private BackgroundType background;
-
 	@Column(nullable = false, length = 1024)
 	private String source;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private FrameType frameType;
+
+	private int canvasWidth;
+	private int canvasHeight;
+
+	@Convert(converter = BackgroundConverter.class)
+	@Column(columnDefinition = "json", nullable = false)
+	private BackgroundAttributes background;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")

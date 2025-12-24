@@ -1,12 +1,12 @@
 package com.recorday.recorday.frame.entity;
 
-import com.recorday.recorday.frame.component.BackgroundConverter;
-import com.recorday.recorday.frame.dto.request.BackgroundAttributes;
+import com.recorday.recorday.frame.enums.ComponentType;
 import com.recorday.recorday.util.entity.BasePublicIdEntity;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,12 +32,22 @@ public class FrameComponent extends BasePublicIdEntity {
 	@Column(name = "frame_component_id")
 	private Long id;
 
-	@Convert(converter = BackgroundConverter.class)
-	@Column(columnDefinition = "json", nullable = false)
-	private BackgroundAttributes background;
-
 	@Column(nullable = false, length = 1024)
 	private String source;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private ComponentType type;
+
+	private double x;
+	private double y;
+	private double width;
+	private double height;
+	private double rotation;
+	private int zIndex;
+
+	@Column(columnDefinition = "json")
+	private String styleJson;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "frame_id")
