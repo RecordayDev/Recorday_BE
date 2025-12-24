@@ -1,4 +1,4 @@
-package com.recorday.recorday.frame.dto.request;
+package com.recorday.recorday.frame.entity.attributes;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

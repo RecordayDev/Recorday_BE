@@ -1,6 +1,8 @@
 package com.recorday.recorday.storage.service;
 
 import java.io.InputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
@@ -8,9 +10,10 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.recorday.recorday.exception.BusinessException;
+import com.recorday.recorday.exception.GlobalErrorCode;
 import com.recorday.recorday.storage.dto.response.PresignedUploadResponse;
 import com.recorday.recorday.storage.enums.ContentType;
 import com.recorday.recorday.storage.enums.UploadType;
@@ -21,9 +24,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -55,7 +60,6 @@ public class S3FileStorageService implements FileStorageService {
 
 	@Deprecated
 	@Override
-	@Transactional
 	public String upload(String dir, String filename, InputStream inputStream, long contentLength, String contentType) {
 
 		String extension = extractExtension(filename);
@@ -81,7 +85,6 @@ public class S3FileStorageService implements FileStorageService {
 	}
 
 	@Override
-	@Transactional
 	public void delete(String key) {
 
 		DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
@@ -111,7 +114,6 @@ public class S3FileStorageService implements FileStorageService {
 	}
 
 	@Override
-	@Transactional
 	public PresignedUploadResponse generatePresignedUploadUrl(
 		UploadType uploadType,
 		String originalFilename,
@@ -153,10 +155,50 @@ public class S3FileStorageService implements FileStorageService {
 		return new PresignedUploadResponse(key, url, validatedContentType.getMimeType(), EXPIRY);
 	}
 
+	@Override
+	public String moveFile(String sourceKey, String destinationKey) {
+
+		if (!StringUtils.hasText(sourceKey) || !StringUtils.hasText(destinationKey)) {
+			throw new BusinessException(GlobalErrorCode.INVALID_INPUT_VALUE, "Source Key 또는 Destination Key가 비어있습니다.");
+		}
+
+		sourceKey = URLDecoder.decode(sourceKey, StandardCharsets.UTF_8);
+
+		try {
+			CopyObjectRequest copyRequest = CopyObjectRequest.builder()
+				.sourceBucket(bucketName)
+				.sourceKey(sourceKey)
+				.destinationBucket(bucketName)
+				.destinationKey(destinationKey)
+				.build();
+
+			s3Client.copyObject(copyRequest);
+
+			DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+				.bucket(bucketName)
+				.key(sourceKey)
+				.build();
+
+			s3Client.deleteObject(deleteRequest);
+
+			log.info("S3 Moved: {} -> {}", sourceKey, destinationKey);
+
+			return destinationKey;
+		} catch (S3Exception e) {
+			log.error("AWS S3 Error during move: {} -> {}", sourceKey, destinationKey, e);
+			throw new BusinessException(GlobalErrorCode.INTERNAL_SERVER_ERROR, "S3 파일 이동 실패");
+		} catch (Exception e) {
+			log.error("Unexpected error during file move", e);
+			throw new BusinessException(GlobalErrorCode.INTERNAL_SERVER_ERROR, "파일 이동 중 알 수 없는 오류가 발생했습니다.");
+		}
+	}
+
 	private String extractExtension(String filename) {
-		if (filename == null) return "";
+		if (filename == null)
+			return "";
 		int idx = filename.lastIndexOf('.');
-		if (idx == -1 || idx == filename.length() - 1) return "";
+		if (idx == -1 || idx == filename.length() - 1)
+			return "";
 		return filename.substring(idx + 1);
 	}
 }

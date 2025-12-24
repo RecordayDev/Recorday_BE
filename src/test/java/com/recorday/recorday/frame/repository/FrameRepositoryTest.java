@@ -13,9 +13,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.test.context.TestPropertySource;
 
 import com.recorday.recorday.auth.oauth2.enums.Provider;
-import com.recorday.recorday.frame.dto.request.ColorBackgroundAttributes;
+import com.recorday.recorday.frame.entity.attributes.ColorBackgroundAttributes;
 import com.recorday.recorday.frame.entity.Frame;
 import com.recorday.recorday.frame.entity.FrameComponent;
+import com.recorday.recorday.frame.enums.ComponentType;
+import com.recorday.recorday.frame.enums.FrameType;
 import com.recorday.recorday.user.entity.User;
 import com.recorday.recorday.user.enums.UserRole;
 import com.recorday.recorday.user.enums.UserStatus;
@@ -43,20 +45,25 @@ class FrameRepositoryTest {
 		User user = createUser("test@test.com");
 
 		Frame frame1 = createFrame("f1", "desc1");
-		Frame frame2 = createFrame("f2", "desc2");
 
 		user.addFrame(frame1);
-		user.addFrame(frame2);
 
-		frame1.addComponent(FrameComponent.builder()
-			.source("src_txt")
-			.background(new ColorBackgroundAttributes())
-			.build());
+		FrameComponent comp1 = FrameComponent.builder()
+			.type(ComponentType.TEXT)
+			.source("Happy Day") // 텍스트 내용
+			.x(10).y(20).width(200).height(50) // 필수 좌표
+			.rotation(0).zIndex(1)
+			.build();
 
-		frame2.addComponent(FrameComponent.builder()
-			.source("src_img")
-			.background(new ColorBackgroundAttributes())
-			.build());
+		FrameComponent comp2 = FrameComponent.builder()
+			.type(ComponentType.PHOTO)
+			.source("https://s3.../img.jpg") // 이미지 URL
+			.x(50).y(60).width(300).height(400)
+			.rotation(15).zIndex(2)
+			.build();
+
+		frame1.addComponent(comp1);
+		frame1.addComponent(comp2);
 
 		em.persist(user);
 		em.flush();
@@ -66,7 +73,12 @@ class FrameRepositoryTest {
 		frameRepository.deleteComponentsByUserId(user.getId());
 
 		//then
+		em.flush();
+		em.clear();
+
 		Frame findFrame1 = em.find(Frame.class, frame1.getId());
+
+		assertThat(findFrame1).isNotNull();
 		assertThat(findFrame1.getComponents()).isEmpty();
 	}
 
@@ -104,9 +116,12 @@ class FrameRepositoryTest {
 
 	private Frame createFrame(String name, String description) {
 		return Frame.builder()
-			.name(name)
+			.title(name)
 			.description(description)
-			.source("http://frame.source")
+			.source("https://s3.../img.jpg")
+			.frameType(FrameType.CLASSIC)
+			.canvasWidth(800).canvasHeight(1200)
+			.background(new ColorBackgroundAttributes("#FFFFFF"))
 			.build();
 	}
 
