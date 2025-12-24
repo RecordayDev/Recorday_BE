@@ -6,6 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.concurrent.TimeUnit;
 
+import com.recorday.recorday.common.enums.LockStrategy;
+
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PreventDuplicateRequest {
@@ -15,4 +17,6 @@ public @interface PreventDuplicateRequest {
 	long time() default 3000;
 
 	TimeUnit timeUnit() default TimeUnit.MILLISECONDS;
+
+	LockStrategy strategy() default LockStrategy.FAIL_CLOSE;
 }

@@ -1,4 +1,4 @@
-package com.recorday.recorday.auth.component;
+package com.recorday.recorday.auth.component.deletion.scheduler;
 
 import java.time.Clock;
 import java.time.LocalDateTime;

@@ -22,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.recorday.recorday.storage.dto.response.PresignedUploadResponse;
+import com.recorday.recorday.storage.enums.ContentType;
 import com.recorday.recorday.storage.enums.UploadType;
 import com.recorday.recorday.storage.strategy.UploadPathStrategy;
 
@@ -127,7 +128,7 @@ class S3FileStorageServiceTest {
 
 	@Test
 	@DisplayName("파일 key와 만료 시간을 넘기면 presigned URL을 생성해서 반환한다")
-	void generatePresignedUrl() {
+	void generatePresignedGetUrl() {
 		//given
 		String key = "profile/test.png";
 		Duration duration = Duration.ofMinutes(10);
@@ -150,7 +151,7 @@ class S3FileStorageServiceTest {
 			.willReturn(presignedGetObjectRequest);
 
 		//when
-		String url = fileStorageService.generatePresignedUrl(key);
+		String url = fileStorageService.generatePresignedGetUrl(key);
 
 		//then
 		assertThat(url).isEqualTo(expected);
@@ -164,7 +165,7 @@ class S3FileStorageServiceTest {
 		// given
 		UploadType uploadType = UploadType.PROFILE;
 		String originalFilename = "test.png";
-		String contentType = "image/png";
+		ContentType contentType = ContentType.PNG;
 		Duration expiry = Duration.ofDays(1);
 		String publicId = "publicId";
 		boolean isTemp = false;

@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 
 import com.recorday.recorday.auth.entity.CustomUserPrincipal;
 import com.recorday.recorday.auth.exception.AuthErrorCode;
+import com.recorday.recorday.auth.jwt.dto.TokenResponse;
 import com.recorday.recorday.auth.jwt.service.JwtTokenService;
 import com.recorday.recorday.auth.jwt.service.RefreshTokenService;
 import com.recorday.recorday.auth.local.dto.request.LocalLoginRequest;
@@ -82,7 +83,7 @@ class LocalSecurityAuthServiceImplTest {
 		given(jwtTokenService.createRefreshToken(publicId)).willReturn("refresh-token");
 
 		//when
-		AuthTokenResponse response = localSecurityAuthService.login(request);
+		TokenResponse response = localSecurityAuthService.login(request);
 
 		//then
 		assertThat(response.accessToken()).isEqualTo("access-token");

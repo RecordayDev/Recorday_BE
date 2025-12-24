@@ -7,11 +7,11 @@ import org.springframework.stereotype.Component;
 import com.recorday.recorday.storage.enums.UploadType;
 
 @Component
-public class FourcutUploadPathStrategy implements UploadPathStrategy{
+public class FourcutPhotoUploadPathStrategy implements UploadPathStrategy{
 
 	@Override
 	public UploadType getUploadType() {
-		return UploadType.FOURCUT;
+		return UploadType.FOURCUT_PHOTO;
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package com.recorday.recorday.auth.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,13 +19,11 @@ import com.recorday.recorday.auth.local.dto.request.LocalLoginRequest;
 import com.recorday.recorday.auth.local.dto.request.LocalRegisterRequest;
 import com.recorday.recorday.auth.local.dto.request.LocalResetPasswordRequest;
 import com.recorday.recorday.auth.local.dto.request.LocalVerifyPasswordRequest;
-import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
+import com.recorday.recorday.auth.local.dto.response.EmailAuthVerifyResponse;
 import com.recorday.recorday.auth.local.service.LocalLoginService;
 import com.recorday.recorday.auth.local.service.LocalUserAuthService;
 import com.recorday.recorday.auth.local.service.PasswordService;
-import com.recorday.recorday.auth.local.service.mail.MailAuthCodeService;
 import com.recorday.recorday.auth.service.UserExitService;
-import com.recorday.recorday.common.annotation.PreventDuplicateRequest;
 import com.recorday.recorday.util.response.Response;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -48,8 +47,8 @@ public class LocalAuthController {
 
 	@Operation(summary = "이메일 로그인", description = "등록된 이메일과 비밀번호로 로그인하여 Access/Refresh 토큰을 발급받습니다.")
 	@PostMapping("/recorday/login")
-	public ResponseEntity<Response<AuthTokenResponse>> login(@RequestBody @Valid LocalLoginRequest request) {
-		AuthTokenResponse tokenResponse = localLoginService.login(request);
+	public ResponseEntity<Response<TokenResponse>> login(@RequestBody @Valid LocalLoginRequest request) {
+		TokenResponse tokenResponse = localLoginService.login(request);
 		return Response.ok(tokenResponse).toResponseEntity();
 	}
 
@@ -60,7 +59,7 @@ public class LocalAuthController {
 		return Response.ok().toResponseEntity();
 	}
 
-	@Operation(summary = "회원 탈퇴", description = "현재 로그인된 사용자의 계정을 삭제하고 탈퇴 처리합니다.")
+	@Operation(summary = "회원 탈퇴", description = "현재 로그인된 사용자의 계정을 삭제하고 탈퇴 요청 처리합니다. 7일 뒤 자정에 진짜 삭제됩니다.")
 	@DeleteMapping("/recorday/exit")
 	public ResponseEntity<Response<Void>> exit(
 		@Parameter(hidden = true)
@@ -70,34 +69,47 @@ public class LocalAuthController {
 		return Response.ok().toResponseEntity();
 	}
 
+	@Operation(summary = "회원 탈퇴 취소", description = "현재 로그인된 사용자의 계정을 탈퇴 취소합니다.")
+	@PreAuthorize("hasRole('DELETED_REQUESTED')")
+	@PostMapping("/recorday/reactivate")
+	public ResponseEntity<Response<Void>> reactivate(
+		@Parameter(hidden = true)
+		@AuthenticationPrincipal CustomUserPrincipal principal
+	) {
+		userExitService.reActivate(principal.getId());
+
+		return Response.ok().toResponseEntity();
+	}
+
 	@Operation(
 		summary = "인증 코드 검증",
-		description = "비밀번호 재설정 인증 코드 검증"
+		description = "비밀번호 재설정 인증 코드 검증, 리셋 토큰은 10분 유효"
 	)
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "검증 성공"),
 		@ApiResponse(responseCode = "400", description = "인증 실패 (코드가 일치하지 않거나 만료됨)"),
 		@ApiResponse(responseCode = "404", description = "존재하지 않는 사용자")
 	})
-	@PreventDuplicateRequest(key = "#request.email", time = 2000)
 	@PostMapping("/recorday/reset/password/verification")
-	public ResponseEntity<Response<Void>> verifyAuthCode(@RequestBody @Valid EmailAuthVerifyRequest request) {
+	public ResponseEntity<Response<EmailAuthVerifyResponse>> verifyAuthCode(@RequestBody @Valid EmailAuthVerifyRequest request) {
 
-		passwordService.verifyAuthCode(request.email(), request.code());
+		EmailAuthVerifyResponse emailAuthVerifyResponse = passwordService.verifyAuthCode(request.email(),
+			request.code());
 
-		return Response.ok().toResponseEntity();
+		return Response.ok(emailAuthVerifyResponse).toResponseEntity();
 	}
 
-	@Operation(summary = "비밀번호 재설정 (찾기)", description = "기존 비밀번호 확인 없이 새로운 비밀번호로 변경합니다.")
+	@Operation(summary = "비밀번호 재설정 (찾기)", description = "새로운 비밀번호로 변경합니다. 리셋 토큰은 10분 유효")
 	@PatchMapping("/recorday/reset/password")
 	public ResponseEntity<Response<Void>> resetPassword(
 		@RequestBody LocalResetPasswordRequest request
 	) {
-		passwordService.resetPassword(request.email(), request.newPassword());
+		passwordService.resetPassword(request.resetToken(), request.newPassword());
 
 		return Response.ok().toResponseEntity();
 	}
 
+	@Deprecated
 	@Operation(summary = "기존 비밀번호 검증", description = "기존 비밀번호를 검증합니다.")
 	@GetMapping("/recorday/verify/password")
 	public ResponseEntity<Response<Void>> verifyPassword(
@@ -117,7 +129,8 @@ public class LocalAuthController {
 		@AuthenticationPrincipal CustomUserPrincipal principal,
 		@RequestBody LocalChangePasswordRequest request
 	) {
-		passwordService.changePassword(principal.getId(), principal.getPassword(), request.oldPassword(), request.newPassword());
+		passwordService.changePassword(principal.getId(), principal.getPassword(), request.oldPassword(),
+			request.newPassword());
 		return Response.ok().toResponseEntity();
 	}
 }

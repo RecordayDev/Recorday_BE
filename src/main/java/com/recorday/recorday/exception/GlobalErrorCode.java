@@ -14,6 +14,7 @@ public enum GlobalErrorCode implements ErrorCode{
 	TYPE_MISMATCH("GEN-005", HttpStatus.BAD_REQUEST, "Type Mismatch"),
 	JSON_PARSE_ERROR("GEN-006", HttpStatus.BAD_REQUEST, "Json Parse Error"),
 	DUPLICATE_REQUEST("GEN-007", HttpStatus.BAD_REQUEST, "너무 잦은 요청입니다. 잠시 후 다시 시도해주세요."),
+	FILE_EXPIRED("GEN-103", HttpStatus.BAD_REQUEST, "FILE_EXPIRED"),
 
 	// 404
 	NOT_FOUND("GEN-007", HttpStatus.NOT_FOUND, "Resource Not Found"),
@@ -31,7 +32,10 @@ public enum GlobalErrorCode implements ErrorCode{
 	// 500
 	INTERNAL_SERVER_ERROR("GEN-099", HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"),
 	DATABASE_ERROR("GEN-100", HttpStatus.INTERNAL_SERVER_ERROR, "Database Error"),
-	IO_ERROR("GEN-101", HttpStatus.INTERNAL_SERVER_ERROR, "IO Error");
+	IO_ERROR("GEN-101", HttpStatus.INTERNAL_SERVER_ERROR, "IO Error"),
+	REDIS_CONNECTION_ERROR("GEN-102", HttpStatus.INTERNAL_SERVER_ERROR, "REDIS_CONNECTION_ERROR"),
+
+
 	;
 
 	private final String code;
