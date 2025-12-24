@@ -49,7 +49,7 @@ public class Frame extends BasePublicIdEntity {
 	private String description;
 
 	@Column(nullable = false, length = 1024)
-	private String source;
+	private String previewKey;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
@@ -78,5 +78,14 @@ public class Frame extends BasePublicIdEntity {
 	public void addComponent(FrameComponent component) {
 		this.components.add(component);
 		component.assignFrame(this);
+	}
+
+	public void updateMetadata(String title, String description, int canvasWidth, int canvasHeight, BackgroundAttributes background, String previewKey) {
+		this.title = title;
+		this.description = description;
+		this.canvasWidth = canvasWidth;
+		this.canvasHeight = canvasHeight;
+		this.background = background;
+		this.previewKey = previewKey;
 	}
 }

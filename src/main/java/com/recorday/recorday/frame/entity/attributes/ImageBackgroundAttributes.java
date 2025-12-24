@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 
-class ImageBackgroundAttributes extends BackgroundAttributes {
+public class ImageBackgroundAttributes extends BackgroundAttributes {
 	private String key;
 	private double opacity;
 

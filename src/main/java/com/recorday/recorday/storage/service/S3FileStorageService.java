@@ -162,8 +162,6 @@ public class S3FileStorageService implements FileStorageService {
 			throw new BusinessException(GlobalErrorCode.INVALID_INPUT_VALUE, "Source Key 또는 Destination Key가 비어있습니다.");
 		}
 
-		sourceKey = URLDecoder.decode(sourceKey, StandardCharsets.UTF_8);
-
 		try {
 			CopyObjectRequest copyRequest = CopyObjectRequest.builder()
 				.sourceBucket(bucketName)
@@ -185,6 +183,11 @@ public class S3FileStorageService implements FileStorageService {
 
 			return destinationKey;
 		} catch (S3Exception e) {
+			if (e.statusCode() == 404 || "NoSuchKey".equals(e.awsErrorDetails().errorCode())) {
+				log.warn("Temp file not found (Expired?): {}", sourceKey);
+				throw new BusinessException(GlobalErrorCode.FILE_EXPIRED, "임시 파일이 만료되었습니다. 이미지를 다시 업로드해주세요.");
+			}
+
 			log.error("AWS S3 Error during move: {} -> {}", sourceKey, destinationKey, e);
 			throw new BusinessException(GlobalErrorCode.INTERNAL_SERVER_ERROR, "S3 파일 이동 실패");
 		} catch (Exception e) {
