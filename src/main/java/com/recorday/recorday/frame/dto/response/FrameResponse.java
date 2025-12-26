@@ -13,8 +13,6 @@ public record FrameResponse(
 	String description,
 	String source,
 	FrameType frameType,
-	int canvasWidth,
-	int canvasHeight,
 	BackgroundAttributes background,
 	List<ComponentResponse> components
 ) {
@@ -22,6 +20,7 @@ public record FrameResponse(
 		Long id,
 		ComponentType type,
 		String source,
+		String key,
 		double x,
 		double y,
 		double width,

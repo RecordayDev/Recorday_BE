@@ -52,6 +52,7 @@ public class SecurityConfig {
 	);
 
 	private static final List<String> CORS_WHITELIST = List.of(
+		"https://harucut.com",
 		"http://localhost:5173",
 		"http://localhost:3000",
 		"https://recorday.vercel.app"
