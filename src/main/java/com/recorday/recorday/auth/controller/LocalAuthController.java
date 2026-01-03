@@ -20,6 +20,8 @@ import com.recorday.recorday.auth.local.dto.request.LocalRegisterRequest;
 import com.recorday.recorday.auth.local.dto.request.LocalResetPasswordRequest;
 import com.recorday.recorday.auth.local.dto.request.LocalVerifyPasswordRequest;
 import com.recorday.recorday.auth.local.dto.response.EmailAuthVerifyResponse;
+import com.recorday.recorday.auth.local.dto.response.LoginResponse;
+import com.recorday.recorday.auth.local.dto.response.LoginResult;
 import com.recorday.recorday.auth.local.service.LocalLoginService;
 import com.recorday.recorday.auth.local.service.LocalUserAuthService;
 import com.recorday.recorday.auth.local.service.PasswordService;
@@ -45,11 +47,14 @@ public class LocalAuthController {
 	private final UserExitService userExitService;
 	private final PasswordService passwordService;
 
-	@Operation(summary = "이메일 로그인", description = "등록된 이메일과 비밀번호로 로그인하여 Access/Refresh 토큰을 발급받습니다.")
+	@Operation(summary = "이메일 로그인", description = "등록된 이메일과 비밀번호로 로그인하여 Access/Refresh 토큰을 쿠키로 발급받습니다.")
 	@PostMapping("/recorday/login")
-	public ResponseEntity<Response<TokenResponse>> login(@RequestBody @Valid LocalLoginRequest request) {
-		TokenResponse tokenResponse = localLoginService.login(request);
-		return Response.ok(tokenResponse).toResponseEntity();
+	public ResponseEntity<Response<LoginResponse>> login(@RequestBody @Valid LocalLoginRequest request) {
+		LoginResult result = localLoginService.login(request);
+
+		LoginResponse responseBody = new LoginResponse(result.userStatus());
+
+		return Response.ok(responseBody).toResponseEntity(result.cookies());
 	}
 
 	@Operation(summary = "이메일 회원가입", description = "새로운 사용자를 등록합니다.")

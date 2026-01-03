@@ -1,6 +1,7 @@
 package com.recorday.recorday.auth.jwt.filter;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,6 +16,7 @@ import com.recorday.recorday.auth.service.UserPrincipalLoader;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+	private static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
 
 	private final JwtTokenService jwtTokenService;
 	private final UserPrincipalLoader userPrincipalLoader;
@@ -34,14 +38,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		log.info("JWT 필터 접근 URI: {}", request.getRequestURI());
 
-		String authorizationHeader = request.getHeader("Authorization");
+		String token = resolveTokenFromCookie(request);
+
+		if (token == null) {
+			filterChain.doFilter(request, response);
+			return;
+		}
+
+		/*String authorizationHeader = request.getHeader("Authorization");
 
 		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
 			filterChain.doFilter(request, response);
 			return;
 		}
 
-		String token = authorizationHeader.substring(7);
+		String token = authorizationHeader.substring(7);*/
 
 		try {
 			jwtTokenService.validateToken(token);
@@ -74,6 +85,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		}
 
 		filterChain.doFilter(request, response);
+	}
+
+	private String resolveTokenFromCookie(HttpServletRequest request) {
+		Cookie[] cookies = request.getCookies();
+		if (cookies == null) {
+			return null;
+		}
+
+		return Arrays.stream(cookies)
+			.filter(cookie -> ACCESS_TOKEN_COOKIE_NAME.equals(cookie.getName()))
+			.map(Cookie::getValue)
+			.findFirst()
+			.orElse(null);
 	}
 
 	@Override

@@ -1,11 +1,10 @@
 package com.recorday.recorday.auth.local.service;
 
-import com.recorday.recorday.auth.jwt.dto.TokenResponse;
 import com.recorday.recorday.auth.local.dto.request.LocalLoginRequest;
-import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
+import com.recorday.recorday.auth.local.dto.response.LoginResult;
 
 public interface LocalLoginService {
 
-	TokenResponse login(LocalLoginRequest request);
+	LoginResult login(LocalLoginRequest request);
 
 }
