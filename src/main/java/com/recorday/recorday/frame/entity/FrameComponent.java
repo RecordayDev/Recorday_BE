@@ -41,8 +41,9 @@ public class FrameComponent extends BasePublicIdEntity {
 
 	private double x;
 	private double y;
-	private double width;
-	private double height;
+	private Double width;
+	private Double height;
+	private Double scale;
 	private double rotation;
 	private int zIndex;
 

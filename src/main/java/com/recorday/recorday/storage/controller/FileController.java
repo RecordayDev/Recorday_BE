@@ -5,6 +5,7 @@ import java.time.Duration;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,6 +49,13 @@ public class FileController {
 			principal.getPublicId(),
 			request.isTemp()
 		);
+
+		return Response.ok(response).toResponseEntity();
+	}
+
+	@GetMapping("/presigned-img")
+	public ResponseEntity<Response<String>> getPresignedImgUrl(@RequestParam("key") String key) {
+		String response = fileStorageService.generatePresignedGetUrl(key);
 
 		return Response.ok(response).toResponseEntity();
 	}

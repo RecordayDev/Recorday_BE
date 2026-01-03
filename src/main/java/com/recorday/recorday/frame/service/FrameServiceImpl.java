@@ -56,8 +56,6 @@ public class FrameServiceImpl implements FrameService {
 			.description(request.description())
 			.previewKey(resolvedPreviewKey)
 			.frameType(request.frameType())
-			.canvasWidth(request.canvasWidth())
-			.canvasHeight(request.canvasHeight())
 			.background(resolvedBackground)
 			.build();
 
@@ -125,7 +123,6 @@ public class FrameServiceImpl implements FrameService {
 
 		frame.updateMetadata(
 			request.title(), request.description(),
-			request.canvasWidth(), request.canvasHeight(),
 			newBackground,
 			newPreviewKey
 		);
@@ -212,6 +209,7 @@ public class FrameServiceImpl implements FrameService {
 				c.getId(),
 				c.getType(),
 				frameAssetManager.resolveSource(c.getType(), c.getSource()),
+				c.getSource(),
 				c.getX(), c.getY(), c.getWidth(), c.getHeight(), c.getRotation(), c.getZIndex(),
 				frameStyleConverter.convertToMap(c.getStyleJson())
 			))
@@ -223,8 +221,6 @@ public class FrameServiceImpl implements FrameService {
 			frame.getDescription(),
 			frameAssetManager.resolveSource(BackgroundType.IMAGE, frame.getPreviewKey()),
 			frame.getFrameType(),
-			frame.getCanvasWidth(),
-			frame.getCanvasHeight(),
 			resolveBackgroundUrl(frame.getBackground()),
 			componentResponses
 		);

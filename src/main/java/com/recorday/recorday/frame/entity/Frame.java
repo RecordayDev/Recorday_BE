@@ -55,9 +55,6 @@ public class Frame extends BasePublicIdEntity {
 	@Column(nullable = false)
 	private FrameType frameType;
 
-	private int canvasWidth;
-	private int canvasHeight;
-
 	@Convert(converter = BackgroundConverter.class)
 	@Column(columnDefinition = "json", nullable = false)
 	private BackgroundAttributes background;
@@ -80,11 +77,9 @@ public class Frame extends BasePublicIdEntity {
 		component.assignFrame(this);
 	}
 
-	public void updateMetadata(String title, String description, int canvasWidth, int canvasHeight, BackgroundAttributes background, String previewKey) {
+	public void updateMetadata(String title, String description, BackgroundAttributes background, String previewKey) {
 		this.title = title;
 		this.description = description;
-		this.canvasWidth = canvasWidth;
-		this.canvasHeight = canvasHeight;
 		this.background = background;
 		this.previewKey = previewKey;
 	}
