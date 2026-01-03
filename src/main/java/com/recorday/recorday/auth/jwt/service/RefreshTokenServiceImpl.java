@@ -2,12 +2,16 @@ package com.recorday.recorday.auth.jwt.service;
 
 import java.time.Duration;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.recorday.recorday.auth.exception.AuthErrorCode;
+import com.recorday.recorday.auth.jwt.dto.AuthTokenCookies;
 import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
+import com.recorday.recorday.auth.utils.CookieUtil;
 import com.recorday.recorday.exception.BusinessException;
 
 import lombok.RequiredArgsConstructor;
@@ -20,6 +24,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
 	private final StringRedisTemplate stringRedisTemplate;
 	private final JwtTokenService jwtTokenService;
+	private final CookieUtil cookieUtil;
 
 	private String buildKey(String publicId) {
 		return KEY_PREFIX + publicId;
@@ -36,7 +41,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
 	@Override
 	@Transactional
-	public AuthTokenResponse reissue(String refreshToken) {
+	public AuthTokenCookies reissue(String refreshToken) {
 
 		jwtTokenService.validateToken(refreshToken);
 
@@ -62,7 +67,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 			.opsForValue()
 			.set(key, newRefreshToken, ttl);
 
-		return new AuthTokenResponse(newAccessToken, newRefreshToken);
+		ResponseCookie accessCookie = cookieUtil.createTokenCookie("accessToken", newAccessToken, jwtTokenService.getAccessTokenValidityMillis());
+		ResponseCookie refreshCookie = cookieUtil.createTokenCookie("refreshToken", newRefreshToken, jwtTokenService.getRefreshTokenValidityMillis());
+
+		return new AuthTokenCookies(accessCookie, refreshCookie);
 	}
 
 	@Override

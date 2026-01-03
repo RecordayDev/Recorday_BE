@@ -13,4 +13,6 @@ public interface JwtTokenService {
 	public String getTokenType(String token);
 
 	public long getRefreshTokenValidityMillis();
+
+	public long getAccessTokenValidityMillis();
 }

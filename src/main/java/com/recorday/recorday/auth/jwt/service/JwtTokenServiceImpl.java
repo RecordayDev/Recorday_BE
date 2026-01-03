@@ -96,4 +96,9 @@ public class JwtTokenServiceImpl implements JwtTokenService{
 	public long getRefreshTokenValidityMillis() {
 		return refreshTokenValidityMillis;
 	}
+
+	@Override
+	public long getAccessTokenValidityMillis() {
+		return accessTokenValidityMillis;
+	}
 }

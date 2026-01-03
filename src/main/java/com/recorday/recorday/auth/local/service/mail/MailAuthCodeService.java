@@ -19,7 +19,7 @@ public class MailAuthCodeService {
 	private final EmailService emailService;
 
 	private static final long VERIFICATION_TTL = 300L;
-	private static final String EMAIL_SUBJECT = "[Recorday] 이메일 인증 코드입니다.";
+	private static final String EMAIL_SUBJECT = "[Harucut] 이메일 인증 코드입니다.";
 
 	public void sendCode(String email) {
 

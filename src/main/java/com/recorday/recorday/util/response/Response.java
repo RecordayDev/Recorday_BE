@@ -1,9 +1,11 @@
 package com.recorday.recorday.util.response;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.recorday.recorday.auth.jwt.dto.AuthTokenCookies;
 import com.recorday.recorday.exception.ErrorCode;
 
 import lombok.AllArgsConstructor;
@@ -51,6 +53,15 @@ public class Response<T> {
 	public ResponseEntity<Response<T>> toResponseEntity() {
 		HttpStatus httpStatus = HttpStatus.valueOf(this.status);
 		return new ResponseEntity<>(this, httpStatus);
+	}
+
+	public ResponseEntity<Response<T>> toResponseEntity(AuthTokenCookies cookies) {
+		HttpStatus httpStatus = HttpStatus.valueOf(this.status);
+
+		return ResponseEntity.status(httpStatus)
+			.header(HttpHeaders.SET_COOKIE, cookies.accessTokenCookie().toString())
+			.header(HttpHeaders.SET_COOKIE, cookies.refreshTokenCookie().toString())
+			.body(this);
 	}
 
 	public static <T> Response<T> from(ErrorCode errorCode, T data) {
