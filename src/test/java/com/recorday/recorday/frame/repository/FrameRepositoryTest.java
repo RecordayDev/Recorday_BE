@@ -51,14 +51,14 @@ class FrameRepositoryTest {
 		FrameComponent comp1 = FrameComponent.builder()
 			.type(ComponentType.TEXT)
 			.source("Happy Day") // 텍스트 내용
-			.x(10).y(20).width(200).height(50) // 필수 좌표
+			.x(10).y(20).width(200.0).height(50.0) // 필수 좌표
 			.rotation(0).zIndex(1)
 			.build();
 
 		FrameComponent comp2 = FrameComponent.builder()
 			.type(ComponentType.PHOTO)
 			.source("https://s3.../img.jpg") // 이미지 URL
-			.x(50).y(60).width(300).height(400)
+			.x(50).y(60).width(300.0).height(400.0)
 			.rotation(15).zIndex(2)
 			.build();
 
@@ -118,9 +118,8 @@ class FrameRepositoryTest {
 		return Frame.builder()
 			.title(name)
 			.description(description)
-			.source("https://s3.../img.jpg")
+			.previewKey("https://s3.../img.jpg")
 			.frameType(FrameType.CLASSIC)
-			.canvasWidth(800).canvasHeight(1200)
 			.background(new ColorBackgroundAttributes("#FFFFFF"))
 			.build();
 	}

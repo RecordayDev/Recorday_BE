@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RandomVerificationCodeGenerator implements VerificationCodeGenerator {
 
-	private static final String ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	private static final String ALPHANUMERIC = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 	private static final int CODE_LENGTH = 6;
 	private final SecureRandom secureRandom = new SecureRandom();
 

@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.*;
 
 import java.time.Duration;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,8 +15,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.http.ResponseCookie;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.recorday.recorday.auth.exception.AuthErrorCode;
+import com.recorday.recorday.auth.exception.CustomAuthenticationException;
+import com.recorday.recorday.auth.jwt.dto.AuthTokenCookies;
 import com.recorday.recorday.auth.local.dto.response.AuthTokenResponse;
 import com.recorday.recorday.exception.BusinessException;
 
@@ -34,105 +39,130 @@ class RefreshTokenServiceImplTest {
 	@InjectMocks
 	private RefreshTokenServiceImpl refreshTokenService;
 
+	// 테스트용 만료 시간 설정 (밀리초)
+	private final long TEST_ACCESS_EXPIRATION = 1800000L; // 30분
+	private final long TEST_REFRESH_EXPIRATION = 604800000L; // 7일
+
+	@BeforeEach
+	void setUp() {
+		ReflectionTestUtils.setField(refreshTokenService, "accessValidity", TEST_ACCESS_EXPIRATION);
+		ReflectionTestUtils.setField(refreshTokenService, "refreshValidity", TEST_REFRESH_EXPIRATION);
+	}
+
 	@Test
-	@DisplayName("유효한 리프레시 토큰으로 재발급 성공")
+	@DisplayName("유효한 리프레시 토큰으로 재발급 시, 쿠키 설정(MaxAge 등)이 올바르게 적용되어 반환된다")
 	void reissue_success() {
 		// given
 		given(stringRedisTemplate.opsForValue()).willReturn(valueOperations);
 
-		String refreshToken = "old-refresh-token";
-		String publicId = "public-id";
+		String oldRefreshToken = "old-refresh-token";
+		String publicId = "user-public-id-123";
 		String key = "REFRESH_TOKEN:USER:" + publicId;
+
 		String newAccessToken = "new-access-token";
 		String newRefreshToken = "new-refresh-token";
-		long refreshValidityMillis = 1000L;
 
-		given(jwtTokenService.getTokenType(refreshToken)).willReturn("REFRESH");
-		given(jwtTokenService.getUserPublicId(refreshToken)).willReturn(publicId);
-		given(valueOperations.get(key)).willReturn(refreshToken);
+		// 1. JWT 서비스 동작 정의
+		given(jwtTokenService.getTokenType(oldRefreshToken)).willReturn("REFRESH");
+		given(jwtTokenService.getUserPublicId(oldRefreshToken)).willReturn(publicId);
+
+		// Redis TTL 설정을 위해 호출됨 (서비스 코드 로직 확인)
+		given(jwtTokenService.getRefreshTokenValidityMillis()).willReturn(TEST_REFRESH_EXPIRATION);
+
+		// 2. Redis 조회 결과 정의
+		given(valueOperations.get(key)).willReturn(oldRefreshToken);
+
+		// 3. 새 토큰 생성 정의
 		given(jwtTokenService.createAccessToken(publicId)).willReturn(newAccessToken);
 		given(jwtTokenService.createRefreshToken(publicId)).willReturn(newRefreshToken);
-		given(jwtTokenService.getRefreshTokenValidityMillis()).willReturn(refreshValidityMillis);
 
-		//when
-		AuthTokenResponse response = refreshTokenService.reissue(refreshToken);
+		// when
+		AuthTokenCookies response = refreshTokenService.reissue(oldRefreshToken);
 
-		//then
-		assertThat(response.accessToken()).isEqualTo(newAccessToken);
-		assertThat(response.refreshToken()).isEqualTo(newRefreshToken);
+		// then
+		// 1. Access Token 쿠키 검증
+		ResponseCookie accessCookie = response.accessTokenCookie();
+		assertThat(accessCookie.getValue()).isEqualTo(newAccessToken);
+		assertThat(accessCookie.getMaxAge()).isEqualTo(Duration.ofMillis(TEST_ACCESS_EXPIRATION)); // @Value 주입값 확인
+		assertThat(accessCookie.isHttpOnly()).isTrue();
+		assertThat(accessCookie.isSecure()).isTrue();
+		assertThat(accessCookie.getSameSite()).isEqualTo("Strict");
+		assertThat(accessCookie.getPath()).isEqualTo("/");
 
-		Duration ttl = Duration.ofMillis(refreshValidityMillis);
+		// 2. Refresh Token 쿠키 검증
+		ResponseCookie refreshCookie = response.refreshTokenCookie();
+		assertThat(refreshCookie.getValue()).isEqualTo(newRefreshToken);
+		assertThat(refreshCookie.getMaxAge()).isEqualTo(Duration.ofMillis(TEST_REFRESH_EXPIRATION)); // @Value 주입값 확인
+		assertThat(refreshCookie.isHttpOnly()).isTrue();
+		assertThat(refreshCookie.isSecure()).isTrue();
+		assertThat(refreshCookie.getSameSite()).isEqualTo("Strict");
+		assertThat(refreshCookie.getPath()).isEqualTo("/");
+
+		// 3. Redis 업데이트 검증 (TTL이 제대로 넘어갔는지 확인)
 		verify(valueOperations).set(
 			eq(key),
 			eq(newRefreshToken),
-			eq(ttl)
+			eq(Duration.ofMillis(TEST_REFRESH_EXPIRATION))
 		);
 	}
 
 	@Test
-	@DisplayName("유효하지 않은 리프레시 토큰이면 재발급에 실패한다 - 서명/만료 검증 단계")
-	void reissue_invalidToken() {
+	@DisplayName("토큰 자체 검증(validateToken) 실패 시 예외가 전파된다")
+	void reissue_validationFailed() {
 		// given
-		String refreshToken = "invalid-token";
+		String invalidToken = "invalid-token";
 
-		// when
-		BusinessException ex = assertThrows(
-			BusinessException.class,
-			() -> refreshTokenService.reissue(refreshToken)
-		);
+		// validateToken 메서드가 예외를 던지도록 설정 (void 메서드 mock)
+		willThrow(new CustomAuthenticationException(AuthErrorCode.INVALID_TOKEN))
+			.given(jwtTokenService).validateToken(invalidToken);
 
-		// then
-		assertThat(ex.getErrorCode()).isEqualTo(AuthErrorCode.INVALID_TOKEN);
+		// when & then
+		assertThrows(CustomAuthenticationException.class,
+			() -> refreshTokenService.reissue(invalidToken));
 	}
 
 	@Test
-	@DisplayName("액세스 토큰을 리프레시 토큰처럼 보내면 재발급에 실패한다 - 토큰 타입 검증 단계")
+	@DisplayName("토큰 타입이 REFRESH가 아니면 BusinessException(INVALID_TOKEN)이 발생한다")
 	void reissue_wrongTokenType() {
 		// given
-		String refreshToken = "access-token-pretending-to-be-refresh";
+		String accessToken = "access-token"; // 엑세스 토큰을 넣었다고 가정
+		given(jwtTokenService.getTokenType(accessToken)).willReturn("ACCESS");
 
-		given(jwtTokenService.getTokenType(refreshToken)).willReturn("ACCESS");
+		// when & then
+		BusinessException ex = assertThrows(BusinessException.class,
+			() -> refreshTokenService.reissue(accessToken));
 
-		// when
-		BusinessException ex = assertThrows(
-			BusinessException.class,
-			() -> refreshTokenService.reissue(refreshToken)
-		);
-
-		// then
 		assertThat(ex.getErrorCode()).isEqualTo(AuthErrorCode.INVALID_TOKEN);
 	}
 
 	@Test
-	@DisplayName("Redis 에 존재하지 않는 리프레시 토큰이면 재발급에 실패한다")
-	void reissue_notFoundInRedis() {
+	@DisplayName("Redis에 저장된 토큰이 없거나 불일치하면 BusinessException(INVALID_TOKEN)이 발생한다")
+	void reissue_redisMismatch() {
 		// given
 		given(stringRedisTemplate.opsForValue()).willReturn(valueOperations);
 
-		String refreshToken = "rt-not-in-redis";
-		String publicId = "public-id";
+		String requestToken = "token-from-user";
+		String publicId = "user-public-id";
 		String key = "REFRESH_TOKEN:USER:" + publicId;
 
-		given(jwtTokenService.getTokenType(refreshToken)).willReturn("REFRESH");
-		given(jwtTokenService.getUserPublicId(refreshToken)).willReturn(publicId);
+		given(jwtTokenService.getTokenType(requestToken)).willReturn("REFRESH");
+		given(jwtTokenService.getUserPublicId(requestToken)).willReturn(publicId);
 
+		// Redis에서는 null 반환 (만료되었거나 로그아웃됨)
 		given(valueOperations.get(key)).willReturn(null);
 
-		// when
-		BusinessException ex = assertThrows(
-			BusinessException.class,
-			() -> refreshTokenService.reissue(refreshToken)
-		);
+		// when & then
+		BusinessException ex = assertThrows(BusinessException.class,
+			() -> refreshTokenService.reissue(requestToken));
 
-		// then
 		assertThat(ex.getErrorCode()).isEqualTo(AuthErrorCode.INVALID_TOKEN);
 	}
 
 	@Test
-	@DisplayName("로그아웃 시 Redis 에서 리프레시 토큰 키를 삭제한다")
-	void logout_deletesRefreshTokenKey() {
+	@DisplayName("로그아웃 시 Redis 키를 삭제한다")
+	void logout_success() {
 		// given
-		String publicId = "public-id";
+		String publicId = "user-public-id";
 		String key = "REFRESH_TOKEN:USER:" + publicId;
 
 		// when
@@ -141,5 +171,4 @@ class RefreshTokenServiceImplTest {
 		// then
 		verify(stringRedisTemplate).delete(key);
 	}
-
 }
